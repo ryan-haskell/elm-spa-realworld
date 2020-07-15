@@ -31,14 +31,12 @@ type alias User =
 
 decoder : Json.Decoder User
 decoder =
-    Json.field "user"
-        (Json.map5 User
-            (Json.field "email" Json.string)
-            (Json.field "token" Api.Token.decoder)
-            (Json.field "username" Json.string)
-            (Json.field "bio" Json.string)
-            (Json.field "image" (Json.maybe Json.string))
-        )
+    Json.map5 User
+        (Json.field "email" Json.string)
+        (Json.field "token" Api.Token.decoder)
+        (Json.field "username" Json.string)
+        (Json.field "bio" Json.string)
+        (Json.field "image" (Json.maybe Json.string))
 
 
 authentication :
@@ -63,7 +61,8 @@ authentication options =
         { url = "/api/users/login"
         , body = Http.jsonBody body
         , expect =
-            Api.Data.expectJson options.onResponse decoder
+            Api.Data.expectJson options.onResponse
+                (Json.field "user" decoder)
         }
 
 
@@ -95,7 +94,8 @@ registration options =
         { url = "/api/users"
         , body = Http.jsonBody body
         , expect =
-            Api.Data.expectJson options.onResponse decoder
+            Api.Data.expectJson options.onResponse
+                (Json.field "user" decoder)
         }
 
 
@@ -106,7 +106,9 @@ current options =
         , headers = [ Api.Token.header options.token ]
         , url = "/api/user"
         , body = Http.emptyBody
-        , expect = Api.Data.expectJson options.onResponse decoder
+        , expect =
+            Api.Data.expectJson options.onResponse
+                (Json.field "user" decoder)
         , timeout = Just (1000 * 60) -- 60 second timeout
         , tracker = Nothing
         }
@@ -146,7 +148,9 @@ update options =
         , headers = [ Api.Token.header options.token ]
         , url = "/api/user"
         , body = Http.jsonBody body
-        , expect = Api.Data.expectJson options.onResponse decoder
+        , expect =
+            Api.Data.expectJson options.onResponse
+                (Json.field "user" decoder)
         , timeout = Just (1000 * 60) -- 60 second timeout
         , tracker = Nothing
         }

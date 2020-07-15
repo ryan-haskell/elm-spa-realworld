@@ -13,13 +13,11 @@ suite =
             \_ ->
                 """
                 {
-                    "user": {
-                        "email": "jake@jake.jake",
-                        "token": "jwt.token.here",
-                        "username": "jake",
-                        "bio": "I work at statefarm",
-                        "image": null
-                    }
+                    "email": "jake@jake.jake",
+                    "token": "jwt.token.here",
+                    "username": "jake",
+                    "bio": "I work at statefarm",
+                    "image": null
                 }
                 """
                     |> Json.decodeString Api.User.decoder
