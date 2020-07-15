@@ -20,7 +20,7 @@ import Json.Decode as Json
 
 type alias Profile =
     { username : String
-    , bio : String
+    , bio : Maybe String
     , image : Maybe String
     , following : Bool
     }
@@ -30,7 +30,7 @@ decoder : Json.Decoder Profile
 decoder =
     Json.map4 Profile
         (Json.field "username" Json.string)
-        (Json.field "bio" Json.string)
+        (Json.field "bio" (Json.maybe Json.string))
         (Json.field "image" (Json.maybe Json.string))
         (Json.field "following" Json.bool)
 
