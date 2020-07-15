@@ -46,22 +46,11 @@ get :
     }
     -> Cmd msg
 get options =
-    Http.request
-        { method = "GET"
-        , headers =
-            case options.token of
-                Just token ->
-                    [ Api.Token.header token ]
-
-                Nothing ->
-                    []
-        , url = "/api/profiles/" ++ options.username
-        , body = Http.emptyBody
+    Api.Token.get options.token
+        { url = "/api/profiles/" ++ options.username
         , expect =
             Api.Data.expectJson options.onResponse
                 (Json.field "profile" decoder)
-        , timeout = Just (1000 * 60) -- 60 second timeout
-        , tracker = Nothing
         }
 
 
@@ -72,16 +61,12 @@ follow :
     }
     -> Cmd msg
 follow options =
-    Http.request
-        { method = "POST"
-        , headers = [ Api.Token.header options.token ]
-        , url = "/api/profiles/" ++ options.username ++ "/follow"
+    Api.Token.post (Just options.token)
+        { url = "/api/profiles/" ++ options.username ++ "/follow"
         , body = Http.emptyBody
         , expect =
             Api.Data.expectJson options.onResponse
                 (Json.field "profile" decoder)
-        , timeout = Just (1000 * 60) -- 60 second timeout
-        , tracker = Nothing
         }
 
 
@@ -92,14 +77,9 @@ unfollow :
     }
     -> Cmd msg
 unfollow options =
-    Http.request
-        { method = "DELETE"
-        , headers = [ Api.Token.header options.token ]
-        , url = "/api/profiles/" ++ options.username ++ "/follow"
-        , body = Http.emptyBody
+    Api.Token.delete (Just options.token)
+        { url = "/api/profiles/" ++ options.username ++ "/follow"
         , expect =
             Api.Data.expectJson options.onResponse
                 (Json.field "profile" decoder)
-        , timeout = Just (1000 * 60) -- 60 second timeout
-        , tracker = Nothing
         }

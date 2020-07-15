@@ -101,16 +101,11 @@ registration options =
 
 current : { token : Token, onResponse : Data User -> msg } -> Cmd msg
 current options =
-    Http.request
-        { method = "GET"
-        , headers = [ Api.Token.header options.token ]
-        , url = "/api/user"
-        , body = Http.emptyBody
+    Api.Token.get (Just options.token)
+        { url = "/api/user"
         , expect =
             Api.Data.expectJson options.onResponse
                 (Json.field "user" decoder)
-        , timeout = Just (1000 * 60) -- 60 second timeout
-        , tracker = Nothing
         }
 
 
@@ -143,14 +138,10 @@ update options =
                   )
                 ]
     in
-    Http.request
-        { method = "PUT"
-        , headers = [ Api.Token.header options.token ]
-        , url = "/api/user"
+    Api.Token.put (Just options.token)
+        { url = "/api/user"
         , body = Http.jsonBody body
         , expect =
             Api.Data.expectJson options.onResponse
                 (Json.field "user" decoder)
-        , timeout = Just (1000 * 60) -- 60 second timeout
-        , tracker = Nothing
         }
