@@ -1,4 +1,4 @@
-# elm-spa realword
+# elm-spa realworld
 > https://elm-spa-spa-example.netlify.app/
 
 ## local development
