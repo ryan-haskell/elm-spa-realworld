@@ -2,6 +2,7 @@
 
 > ### An __elm-spa__ codebase containing real world examples (CRUD, auth, advanced patterns, etc) that adheres to the [RealWorld](https://github.com/gothinkster/realworld) spec and API.
 
+![elm-test](https://github.com/ryannhg/elm-spa-realworld/workflows/elm-test/badge.svg?branch=master)
 
 ### [Demo](https://elm-spa-spa-example.netlify.app/)&nbsp;&nbsp;&nbsp;&nbsp;[RealWorld](https://github.com/gothinkster/realworld)
 
