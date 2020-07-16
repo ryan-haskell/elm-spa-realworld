@@ -70,7 +70,7 @@ authentication options =
                 ]
     in
     Http.post
-        { url = "/api/users/login"
+        { url = "https://conduit.productionready.io/api/users/login"
         , body = Http.jsonBody body
         , expect =
             Api.Data.expectJson options.onResponse
@@ -103,7 +103,7 @@ registration options =
                 ]
     in
     Http.post
-        { url = "/api/users"
+        { url = "https://conduit.productionready.io/api/users"
         , body = Http.jsonBody body
         , expect =
             Api.Data.expectJson options.onResponse
@@ -114,7 +114,7 @@ registration options =
 current : { token : Token, onResponse : Data User -> msg } -> Cmd msg
 current options =
     Api.Token.get (Just options.token)
-        { url = "/api/user"
+        { url = "https://conduit.productionready.io/api/user"
         , expect =
             Api.Data.expectJson options.onResponse
                 (Json.field "user" decoder)
@@ -151,7 +151,7 @@ update options =
                 ]
     in
     Api.Token.put (Just options.token)
-        { url = "/api/user"
+        { url = "https://conduit.productionready.io/api/user"
         , body = Http.jsonBody body
         , expect =
             Api.Data.expectJson options.onResponse

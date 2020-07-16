@@ -69,7 +69,7 @@ list :
     -> Cmd msg
 list options =
     Api.Token.get options.token
-        { url = "/api/articles/" ++ Filters.toQueryString options.filters
+        { url = "https://conduit.productionready.io/api/articles/" ++ Filters.toQueryString options.filters
         , expect =
             Api.Data.expectJson options.onResponse
                 paginatedDecoder
@@ -84,7 +84,7 @@ feed :
     -> Cmd msg
 feed options =
     Api.Token.get (Just options.token)
-        { url = "/api/articles/feed" ++ Filters.pageQueryParameters options.page
+        { url = "https://conduit.productionready.io/api/articles/feed" ++ Filters.pageQueryParameters options.page
         , expect =
             Api.Data.expectJson options.onResponse
                 paginatedDecoder
@@ -98,7 +98,7 @@ get :
     -> Cmd msg
 get options =
     Http.get
-        { url = "/api/articles/" ++ options.slug
+        { url = "https://conduit.productionready.io/api/articles/" ++ options.slug
         , expect =
             Api.Data.expectJson options.onResponse
                 (Json.field "article" decoder)
@@ -133,7 +133,7 @@ create options =
                 ]
     in
     Api.Token.post (Just options.token)
-        { url = "/api/articles"
+        { url = "https://conduit.productionready.io/api/articles"
         , body = Http.jsonBody body
         , expect =
             Api.Data.expectJson options.onResponse
@@ -168,7 +168,7 @@ update options =
                 ]
     in
     Api.Token.put (Just options.token)
-        { url = "/api/articles/" ++ options.slug
+        { url = "https://conduit.productionready.io/api/articles/" ++ options.slug
         , body = Http.jsonBody body
         , expect =
             Api.Data.expectJson options.onResponse
@@ -184,7 +184,7 @@ delete :
     -> Cmd msg
 delete options =
     Api.Token.delete (Just options.token)
-        { url = "/api/articles/" ++ options.slug
+        { url = "https://conduit.productionready.io/api/articles/" ++ options.slug
         , expect =
             Api.Data.expectJson options.onResponse
                 (Json.field "article" decoder)
@@ -199,7 +199,7 @@ favorite :
     -> Cmd msg
 favorite options =
     Api.Token.post (Just options.token)
-        { url = "/api/articles/" ++ options.slug ++ "/favorite"
+        { url = "https://conduit.productionready.io/api/articles/" ++ options.slug ++ "/favorite"
         , body = Http.emptyBody
         , expect =
             Api.Data.expectJson options.onResponse
@@ -215,7 +215,7 @@ unfavorite :
     -> Cmd msg
 unfavorite options =
     Api.Token.delete (Just options.token)
-        { url = "/api/articles/" ++ options.slug ++ "/favorite"
+        { url = "https://conduit.productionready.io/api/articles/" ++ options.slug ++ "/favorite"
         , expect =
             Api.Data.expectJson options.onResponse
                 (Json.field "article" decoder)

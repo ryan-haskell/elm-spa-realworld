@@ -53,7 +53,7 @@ get :
     -> Cmd msg
 get options =
     Api.Token.get options.token
-        { url = "/api/articles/" ++ options.articleSlug ++ "/comments"
+        { url = "https://conduit.productionready.io/api/articles/" ++ options.articleSlug ++ "/comments"
         , expect =
             Api.Data.expectJson options.onResponse
                 (Json.field "comments" (Json.list decoder))
@@ -80,7 +80,7 @@ create options =
                 ]
     in
     Api.Token.post (Just options.token)
-        { url = "/api/articles/" ++ options.articleSlug ++ "/comments"
+        { url = "https://conduit.productionready.io/api/articles/" ++ options.articleSlug ++ "/comments"
         , body = Http.jsonBody body
         , expect =
             Api.Data.expectJson options.onResponse
@@ -98,7 +98,7 @@ delete :
 delete options =
     Api.Token.delete (Just options.token)
         { url =
-            "/api/articles/"
+            "https://conduit.productionready.io/api/articles/"
                 ++ options.articleSlug
                 ++ "/comments/"
                 ++ String.fromInt options.commentId
