@@ -1,19 +1,20 @@
 module Api.Token exposing
     ( Token
-    , decoder
+    , decoder, encode
     , get, put, post, delete
     )
 
 {-|
 
 @docs Token
-@docs decoder
+@docs decoder, encode
 @docs get, put, post, delete
 
 -}
 
 import Http
 import Json.Decode as Json
+import Json.Encode as Encode
 
 
 type Token
@@ -23,6 +24,11 @@ type Token
 decoder : Json.Decoder Token
 decoder =
     Json.map Token Json.string
+
+
+encode : Token -> Json.Value
+encode (Token token) =
+    Encode.string token
 
 
 

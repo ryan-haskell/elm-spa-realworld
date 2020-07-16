@@ -1,13 +1,13 @@
 module Api.User exposing
     ( User
-    , decoder
+    , decoder, encode
     , authentication, registration, current, update
     )
 
 {-|
 
 @docs User
-@docs decoder
+@docs decoder, encode
 
 @docs authentication, registration, current, update
 
@@ -18,13 +18,14 @@ import Api.Token exposing (Token)
 import Http
 import Json.Decode as Json
 import Json.Encode as Encode
+import Utils.Json
 
 
 type alias User =
     { email : String
     , token : Token
     , username : String
-    , bio : String
+    , bio : Maybe String
     , image : Maybe String
     }
 
@@ -35,8 +36,19 @@ decoder =
         (Json.field "email" Json.string)
         (Json.field "token" Api.Token.decoder)
         (Json.field "username" Json.string)
-        (Json.field "bio" Json.string)
+        (Json.field "bio" (Json.maybe Json.string))
         (Json.field "image" (Json.maybe Json.string))
+
+
+encode : User -> Json.Value
+encode user =
+    Encode.object
+        [ ( "username", Encode.string user.username )
+        , ( "email", Encode.string user.email )
+        , ( "token", Api.Token.encode user.token )
+        , ( "image", Utils.Json.maybe Encode.string user.image )
+        , ( "bio", Utils.Json.maybe Encode.string user.bio )
+        ]
 
 
 authentication :
