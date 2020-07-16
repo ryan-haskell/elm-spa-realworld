@@ -193,9 +193,7 @@ viewTabs model =
                 ]
             , case model.activeTab of
                 TagFilter tag ->
-                    li [ class "nav-item" ]
-                        [ a [ class "nav-link active" ] [ text ("#" ++ tag) ]
-                        ]
+                    li [ class "nav-item" ] [ a [ class "nav-link active" ] [ text ("#" ++ tag) ] ]
 
                 _ ->
                     text ""
@@ -206,6 +204,9 @@ viewTabs model =
 viewArticles : Data (List Article) -> List (Html msg)
 viewArticles data =
     case data of
+        Api.Data.Loading ->
+            [ div [ class "article-preview" ] [ text "Loading..." ] ]
+
         Api.Data.Success articles ->
             List.map viewArticlePreview articles
 
