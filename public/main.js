@@ -13,6 +13,8 @@ app.ports.outgoing.subscribe(({ tag, data }) => {
   switch (tag) {
     case 'saveUser':
       return localStorage.setItem('user', JSON.stringify(data))
+    case 'clearUser':
+      return localStorage.removeItem('user')
     default:
       return console.warn(`Unrecognized Port`, tag)
   }

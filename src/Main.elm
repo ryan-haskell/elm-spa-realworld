@@ -5,8 +5,8 @@ import Browser.Navigation as Nav
 import Shared exposing (Flags)
 import Spa.Document as Document exposing (Document)
 import Spa.Generated.Pages as Pages
-import Spa.Generated.Route as Route exposing (Route)
 import Url exposing (Url)
+import Utils.Route exposing (fromUrl)
 
 
 main : Program Flags Model Msg
@@ -134,12 +134,3 @@ subscriptions model =
         , Pages.subscriptions model.page
             |> Sub.map Pages
         ]
-
-
-
--- URL
-
-
-fromUrl : Url -> Route
-fromUrl =
-    Route.fromUrl >> Maybe.withDefault Route.NotFound

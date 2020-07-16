@@ -8,15 +8,18 @@ module Shared exposing
     , view
     )
 
+import Api.User exposing (User)
 import Browser.Navigation exposing (Key)
 import Components.Footer
 import Components.Navbar
 import Html exposing (..)
 import Html.Attributes exposing (class)
+import Json.Decode as Json
+import Ports
 import Spa.Document exposing (Document)
 import Url exposing (Url)
-import Json.Decode as Json
-import Api.User exposing (User)
+import Utils.Route
+
 
 
 -- INIT
@@ -40,7 +43,6 @@ init json url key =
             json
                 |> Json.decodeValue (Json.field "user" Api.User.decoder)
                 |> Result.toMaybe
-                
     in
     ( Model url key user
     , Cmd.none
@@ -52,14 +54,16 @@ init json url key =
 
 
 type Msg
-    = ReplaceMe
+    = ClickedSignOut
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        ReplaceMe ->
-            ( model, Cmd.none )
+        ClickedSignOut ->
+            ( { model | user = Nothing }
+            , Ports.clearUser
+            )
 
 
 subscriptions : Model -> Sub Msg
@@ -80,6 +84,10 @@ view { page, toMsg } model =
     , body =
         [ div [ class "layout" ]
             [ Components.Navbar.view
+                { user = model.user
+                , currentRoute = Utils.Route.fromUrl model.url
+                , onSignOut = toMsg ClickedSignOut
+                }
             , div [ class "page" ] page.body
             , Components.Footer.view
             ]
