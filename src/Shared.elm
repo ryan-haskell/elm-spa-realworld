@@ -15,25 +15,34 @@ import Html exposing (..)
 import Html.Attributes exposing (class)
 import Spa.Document exposing (Document)
 import Url exposing (Url)
-
+import Json.Decode as Json
+import Api.User exposing (User)
 
 
 -- INIT
 
 
 type alias Flags =
-    ()
+    Json.Value
 
 
 type alias Model =
     { url : Url
     , key : Key
+    , user : Maybe User
     }
 
 
 init : Flags -> Url -> Key -> ( Model, Cmd Msg )
-init flags url key =
-    ( Model url key
+init json url key =
+    let
+        user =
+            json
+                |> Json.decodeValue (Json.field "user" Api.User.decoder)
+                |> Result.toMaybe
+                
+    in
+    ( Model url key user
     , Cmd.none
     )
 

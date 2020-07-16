@@ -1,11 +1,17 @@
 module Pages.Register exposing (Model, Msg, Params, page)
 
+import Api.Data exposing (Data)
+import Api.User exposing (User)
+import Browser.Navigation exposing (Key)
+import Components.UserForm
 import Html exposing (..)
-import Html.Attributes exposing (class, href, placeholder, type_)
+import Ports
 import Shared
 import Spa.Document exposing (Document)
+import Spa.Generated.Route as Route
 import Spa.Page as Page exposing (Page)
 import Spa.Url exposing (Url)
+import Utils.Route
 
 
 page : Page Params Model Msg
@@ -29,12 +35,30 @@ type alias Params =
 
 
 type alias Model =
-    {}
+    { user : Data User
+    , key : Key
+    , username : String
+    , email : String
+    , password : String
+    }
 
 
 init : Shared.Model -> Url Params -> ( Model, Cmd Msg )
-init shared { params } =
-    ( {}, Cmd.none )
+init shared { key } =
+    ( Model
+        (case shared.user of
+            Just user ->
+                Api.Data.Success user
+
+            Nothing ->
+                Api.Data.NotAsked
+        )
+        key
+        ""
+        ""
+        ""
+    , Cmd.none
+    )
 
 
 
@@ -42,19 +66,72 @@ init shared { params } =
 
 
 type Msg
-    = ReplaceMe
+    = Updated Field String
+    | AttemptedSignUp
+    | GotUser (Data User)
+
+
+type Field
+    = Username
+    | Email
+    | Password
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        ReplaceMe ->
-            ( model, Cmd.none )
+        Updated Username username ->
+            ( { model | username = username }
+            , Cmd.none
+            )
+
+        Updated Email email ->
+            ( { model | email = email }
+            , Cmd.none
+            )
+
+        Updated Password password ->
+            ( { model | password = password }
+            , Cmd.none
+            )
+
+        AttemptedSignUp ->
+            ( model
+            , Api.User.registration
+                { user =
+                    { username = model.username
+                    , email = model.email
+                    , password = model.password
+                    }
+                , onResponse = GotUser
+                }
+            )
+
+        GotUser user ->
+            ( { model | user = user }
+            , case Api.Data.toMaybe user of
+                Just user_ ->
+                    Cmd.batch
+                        [ Ports.saveUser user_
+                        , Utils.Route.navigate model.key Route.Top
+                        ]
+
+                Nothing ->
+                    Cmd.none
+            )
 
 
 save : Model -> Shared.Model -> Shared.Model
 save model shared =
-    shared
+    { shared
+        | user =
+            case Api.Data.toMaybe model.user of
+                Just user ->
+                    Just user
+
+                Nothing ->
+                    shared.user
+    }
 
 
 load : Shared.Model -> Model -> ( Model, Cmd Msg )
@@ -73,34 +150,30 @@ subscriptions model =
 
 view : Model -> Document Msg
 view model =
-    { title = "Register"
+    { title = "Sign up"
     , body =
-        [ div [ class "auth-page" ]
-            [ div [ class "container page" ]
-                [ div [ class "row" ]
-                    [ div [ class "col-md-6 offset-md-3 col-xs-12" ]
-                        [ h1 [ class "text-xs-center" ] [ text "Sign up" ]
-                        , p [ class "text-xs-center" ]
-                            [ a [ href "" ] [ text "Have an account?" ]
-                            ]
-                        , ul [ class "error-messages" ]
-                            [ li [] [ text "That email is already taken" ]
-                            ]
-                        , form []
-                            [ fieldset [ class "form-group" ]
-                                [ input [ class "form-control form-control-lg", placeholder "Your Name", type_ "text" ] []
-                                ]
-                            , fieldset [ class "form-group" ]
-                                [ input [ class "form-control form-control-lg", placeholder "Email", type_ "text" ] []
-                                ]
-                            , fieldset [ class "form-group" ]
-                                [ input [ class "form-control form-control-lg", placeholder "Password", type_ "password" ] []
-                                ]
-                            , button [ class "btn btn-lg btn-primary pull-xs-right" ] [ text "Sign up" ]
-                            ]
-                        ]
-                    ]
+        [ Components.UserForm.view
+            { user = model.user
+            , label = "Sign up"
+            , onFormSubmit = AttemptedSignUp
+            , alternateLink = { label = "Have an account?", route = Route.Login }
+            , fields =
+                [ { label = "Your Name"
+                  , type_ = "text"
+                  , value = model.username
+                  , onInput = Updated Username
+                  }
+                , { label = "Email"
+                  , type_ = "email"
+                  , value = model.email
+                  , onInput = Updated Email
+                  }
+                , { label = "Password"
+                  , type_ = "password"
+                  , value = model.password
+                  , onInput = Updated Password
+                  }
                 ]
-            ]
+            }
         ]
     }
