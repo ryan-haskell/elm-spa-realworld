@@ -76,7 +76,7 @@ subscriptions model =
 
 view : Model -> Document Msg
 view model =
-    { title = "Profile.Username_String"
+    { title = model.username
     , body =
         [ div [ class "profile-page" ]
             [ div [ class "user-info" ]

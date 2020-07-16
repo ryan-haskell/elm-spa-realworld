@@ -80,7 +80,12 @@ view :
     -> Model
     -> Document msg
 view { page, toMsg } model =
-    { title = page.title
+    { title =
+        if String.isEmpty page.title then
+            "Conduit"
+
+        else
+            page.title ++ " | Conduit"
     , body =
         [ div [ class "layout" ]
             [ Components.Navbar.view

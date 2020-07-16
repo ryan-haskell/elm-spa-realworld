@@ -141,7 +141,7 @@ subscriptions model =
 
 view : Model -> Document Msg
 view model =
-    { title = "Login"
+    { title = "Sign in"
     , body =
         [ Components.UserForm.view
             { user = model.user

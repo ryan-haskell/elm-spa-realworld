@@ -32,7 +32,7 @@ page =
 
 view : Url Params -> Document Msg
 view { params } =
-    { title = "Homepage"
+    { title = ""
     , body =
         [ div [ class "home-page" ]
             [ div [ class "banner" ]

@@ -73,7 +73,7 @@ subscriptions model =
 
 view : Model -> Document Msg
 view model =
-    { title = "Editor"
+    { title = "New Post"
     , body =
         [ div [ class "editor-page" ]
             [ div [ class "container page" ]
