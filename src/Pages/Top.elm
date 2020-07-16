@@ -4,12 +4,16 @@ import Api.Article exposing (Article)
 import Api.Article.Filters as Filters
 import Api.Article.Tag exposing (Tag)
 import Api.Data exposing (Data)
+import Api.User exposing (User)
+import Browser.Navigation as Nav
 import Html exposing (..)
-import Html.Attributes exposing (class, href, src)
+import Html.Attributes exposing (class, classList, href, src)
+import Html.Events as Events
 import Shared
 import Spa.Document exposing (Document)
 import Spa.Page as Page exposing (Page)
 import Spa.Url exposing (Url)
+import Url
 import Utils.Time
 
 
@@ -34,17 +38,27 @@ type alias Params =
 
 
 type alias Model =
-    { articles : Data (List Article)
+    { user : Maybe User
+    , articles : Data (List Article)
     , page : Int
     , tags : Data (List Tag)
+    , activeTab : Tab
     }
 
 
+type Tab
+    = FeedFor User
+    | Global
+    | TagFilter Tag
+
+
 init : Shared.Model -> Url Params -> ( Model, Cmd Msg )
-init shared { params } =
-    ( { page = 1
+init shared _ =
+    ( { user = shared.user
+      , page = 1
       , articles = Api.Data.Loading
       , tags = Api.Data.Loading
+      , activeTab = Global
       }
     , Cmd.batch
         [ Api.Article.list
@@ -64,6 +78,7 @@ init shared { params } =
 type Msg
     = GotArticles (Data { articles : List Article, count : Int })
     | GotTags (Data (List Tag))
+    | SelectedTab Tab
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -77,6 +92,30 @@ update msg model =
         GotTags tags ->
             ( { model | tags = tags }
             , Cmd.none
+            )
+
+        SelectedTab tab ->
+            ( { model
+                | activeTab = tab
+                , articles = Api.Data.Loading
+                , page = 1
+              }
+            , Api.Article.list
+                { filters =
+                    case tab of
+                        Global ->
+                            Filters.create
+
+                        FeedFor user ->
+                            Filters.create
+                                |> Filters.favoritedBy user.username
+
+                        TagFilter tag ->
+                            Filters.create
+                                |> Filters.withTag tag
+                , token = Maybe.map .token model.user
+                , onResponse = GotArticles
+                }
             )
 
 
@@ -113,7 +152,7 @@ view model =
             , div [ class "container page" ]
                 [ div [ class "row" ]
                     [ div [ class "col-md-9" ] <|
-                        (viewTabs :: viewArticles model.articles)
+                        (viewTabs model :: viewArticles model.articles)
                     , div [ class "col-md-3" ] [ viewTags model.tags ]
                     ]
                 ]
@@ -122,17 +161,44 @@ view model =
     }
 
 
-viewTabs : Html msg
-viewTabs =
+viewTabs :
+    { model
+        | activeTab : Tab
+        , user : Maybe User
+    }
+    -> Html Msg
+viewTabs model =
     div [ class "feed-toggle" ]
         [ ul [ class "nav nav-pills outline-active" ]
-            [ -- li [ class "nav-item" ]
-              -- [ a [ class "nav-link disabled", href "" ] [ text "Your Feed" ]
-              -- ]
-              -- ,
-              li [ class "nav-item" ]
-                [ a [ class "nav-link active", href "" ] [ text "Global Feed" ]
+            [ case model.user of
+                Just user ->
+                    li [ class "nav-item" ]
+                        [ button
+                            [ class "nav-link"
+                            , classList [ ( "active", model.activeTab == FeedFor user ) ]
+                            , Events.onClick (SelectedTab (FeedFor user))
+                            ]
+                            [ text "Your Feed" ]
+                        ]
+
+                Nothing ->
+                    text ""
+            , li [ class "nav-item" ]
+                [ button
+                    [ class "nav-link"
+                    , classList [ ( "active", model.activeTab == Global ) ]
+                    , Events.onClick (SelectedTab Global)
+                    ]
+                    [ text "Global Feed" ]
                 ]
+            , case model.activeTab of
+                TagFilter tag ->
+                    li [ class "nav-item" ]
+                        [ a [ class "nav-link active" ] [ text ("#" ++ tag) ]
+                        ]
+
+                _ ->
+                    text ""
             ]
         ]
 
@@ -184,14 +250,21 @@ viewArticlePreview article =
         ]
 
 
-viewTags : Data (List Tag) -> Html msg
+viewTags : Data (List Tag) -> Html Msg
 viewTags data =
     case data of
         Api.Data.Success tags ->
             div [ class "sidebar" ]
                 [ p [] [ text "Popular Tags" ]
                 , div [ class "tag-list" ] <|
-                    List.map (\tag -> a [ class "tag-pill tag-default", href ("#" ++ tag) ] [ text tag ])
+                    List.map
+                        (\tag ->
+                            button
+                                [ class "tag-pill tag-default"
+                                , Events.onClick (SelectedTab (TagFilter tag))
+                                ]
+                                [ text tag ]
+                        )
                         tags
                 ]
 
