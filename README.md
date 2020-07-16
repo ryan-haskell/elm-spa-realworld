@@ -4,7 +4,7 @@
 
 ![elm-test](https://github.com/ryannhg/elm-spa-realworld/workflows/elm-test/badge.svg?branch=master)
 
-### [Demo](https://elm-spa-spa-example.netlify.app/)&nbsp;&nbsp;&nbsp;&nbsp;[RealWorld](https://github.com/gothinkster/realworld)
+### [Demo](https://elm-spa-realworld.netlify.app/)&nbsp;&nbsp;&nbsp;&nbsp;[RealWorld](https://github.com/gothinkster/realworld)
 
 
 This codebase was created to demonstrate a fully fledged fullstack application built with **elm-spa** including CRUD operations, authentication, routing, pagination, and more.
@@ -18,7 +18,7 @@ For more information on how to this works with other frontends/backends, head ov
 
 > This application was built with [elm-spa](https://elm-spa.dev), a friendly tool for making building SPAs with Elm!
 
-Check out the source code for yourself:
+Check out the [the source code](./src) to get a feel for the project structure!
 
 ```
 src/
