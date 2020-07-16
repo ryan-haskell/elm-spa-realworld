@@ -1,6 +1,7 @@
 module Api.Data exposing
     ( Data(..)
     , expectJson
+    , map
     , toMaybe
     )
 
@@ -14,6 +15,22 @@ type Data value
     | Loading
     | Failure (List String)
     | Success value
+
+
+map : (a -> b) -> Data a -> Data b
+map fn data =
+    case data of
+        NotAsked ->
+            NotAsked
+
+        Loading ->
+            Loading
+
+        Failure reason ->
+            Failure reason
+
+        Success value ->
+            Success (fn value)
 
 
 toMaybe : Data value -> Maybe value
