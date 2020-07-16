@@ -16,7 +16,7 @@ For more information on how to this works with other frontends/backends, head ov
 
 # How it works
 
-> This application was built with [elm-spa](https://elm-spa.dev), a friendly tool for making building SPAs with Elm!
+> This application was built with [elm-spa](https://elm-spa.dev), a friendly tool for building SPAs with Elm!
 
 Check out the [the source code](./src) to get a feel for the project structure!
 
