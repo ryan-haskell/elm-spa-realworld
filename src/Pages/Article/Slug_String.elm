@@ -5,14 +5,17 @@ import Api.Article.Comment exposing (Comment)
 import Api.Data exposing (Data)
 import Api.Profile exposing (Profile)
 import Api.User exposing (User)
+import Browser.Navigation exposing (Key)
 import Html exposing (..)
-import Html.Attributes exposing (attribute, class, href, id, placeholder, src, value)
+import Html.Attributes exposing (attribute, class, href, placeholder, src, value)
 import Html.Events as Events
 import Markdown
 import Shared
 import Spa.Document exposing (Document)
+import Spa.Generated.Route as Route
 import Spa.Page as Page exposing (Page)
 import Spa.Url exposing (Url)
+import Utils.Route
 import Utils.Time
 
 
@@ -38,7 +41,8 @@ type alias Params =
 
 
 type alias Model =
-    { article : Data Article
+    { key : Key
+    , article : Data Article
     , comments : Data (List Comment)
     , user : Maybe User
     , commentText : String
@@ -47,7 +51,8 @@ type alias Model =
 
 init : Shared.Model -> Url Params -> ( Model, Cmd Msg )
 init shared { params } =
-    ( { article = Api.Data.Loading
+    ( { key = shared.key
+      , article = Api.Data.Loading
       , comments = Api.Data.Loading
       , user = shared.user
       , commentText = ""
@@ -73,11 +78,13 @@ init shared { params } =
 
 type Msg
     = GotArticle (Data Article)
-    | ClickedFollow User Profile
-    | ClickedUnfollow User Profile
-    | GotAuthor (Data Profile)
     | ClickedFavorite User Article
     | ClickedUnfavorite User Article
+    | ClickedDeleteArticle User Article
+    | DeletedArticle (Data Article)
+    | GotAuthor (Data Profile)
+    | ClickedFollow User Profile
+    | ClickedUnfollow User Profile
     | GotComments (Data (List Comment))
     | ClickedDeleteComment User Article Comment
     | DeletedComment (Data Int)
@@ -110,6 +117,20 @@ update msg model =
                 , slug = article.slug
                 , onResponse = GotArticle
                 }
+            )
+
+        ClickedDeleteArticle user article ->
+            ( model
+            , Api.Article.delete
+                { token = user.token
+                , slug = article.slug
+                , onResponse = DeletedArticle
+                }
+            )
+
+        DeletedArticle _ ->
+            ( model
+            , Utils.Route.navigate model.key Route.Top
             )
 
         GotAuthor profile ->
@@ -201,17 +222,17 @@ update msg model =
 
 
 save : Model -> Shared.Model -> Shared.Model
-save model shared =
+save _ shared =
     shared
 
 
 load : Shared.Model -> Model -> ( Model, Cmd Msg )
-load shared model =
+load _ model =
     ( model, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.none
 
 
@@ -274,37 +295,54 @@ viewArticleMeta model article =
 
 viewControls : Article -> User -> List (Html Msg)
 viewControls article user =
-    [ if article.author.following then
-        viewIconButton
-            { color = FilledGray
-            , icon = Plus
-            , label = "Unfollow " ++ article.author.username
-            , onClick = ClickedUnfollow user article.author
+    if article.author.username == user.username then
+        [ a
+            [ class "btn btn-outline-secondary btn-sm"
+            , href ("/editor/" ++ article.slug)
+            ]
+            [ i [ class "ion-edit" ] []
+            , text "Edit article"
+            ]
+        , viewIconButton
+            { color = OutlinedRed
+            , icon = Trash
+            , label = "Delete article"
+            , onClick = ClickedDeleteArticle user article
             }
+        ]
 
-      else
-        viewIconButton
-            { color = OutlinedGray
-            , icon = Plus
-            , label = "Follow " ++ article.author.username
-            , onClick = ClickedFollow user article.author
-            }
-    , if article.favorited then
-        viewIconButton
-            { color = FilledGreen
-            , icon = Heart
-            , label = "Unfavorite Post (" ++ String.fromInt article.favoritesCount ++ ")"
-            , onClick = ClickedUnfavorite user article
-            }
+    else
+        [ if article.author.following then
+            viewIconButton
+                { color = FilledGray
+                , icon = Plus
+                , label = "Unfollow " ++ article.author.username
+                , onClick = ClickedUnfollow user article.author
+                }
 
-      else
-        viewIconButton
-            { color = OutlinedGreen
-            , icon = Heart
-            , label = "Favorite Post (" ++ String.fromInt article.favoritesCount ++ ")"
-            , onClick = ClickedFavorite user article
-            }
-    ]
+          else
+            viewIconButton
+                { color = OutlinedGray
+                , icon = Plus
+                , label = "Follow " ++ article.author.username
+                , onClick = ClickedFollow user article.author
+                }
+        , if article.favorited then
+            viewIconButton
+                { color = FilledGreen
+                , icon = Heart
+                , label = "Unfavorite Post (" ++ String.fromInt article.favoritesCount ++ ")"
+                , onClick = ClickedUnfavorite user article
+                }
+
+          else
+            viewIconButton
+                { color = OutlinedGreen
+                , icon = Heart
+                , label = "Favorite Post (" ++ String.fromInt article.favoritesCount ++ ")"
+                , onClick = ClickedFavorite user article
+                }
+        ]
 
 
 viewCommentSection : Model -> Article -> Html Msg
@@ -391,6 +429,7 @@ viewComment currentUser article comment =
 type Color
     = OutlinedGray
     | OutlinedGreen
+    | OutlinedRed
     | FilledGray
     | FilledGreen
 
@@ -398,6 +437,7 @@ type Color
 type Icon
     = Plus
     | Heart
+    | Trash
 
 
 viewIconButton :
@@ -418,6 +458,9 @@ viewIconButton options =
                 Heart ->
                     "ion-heart"
 
+                Trash ->
+                    "ion-trash-a"
+
         toButtonClass : Color -> String
         toButtonClass color =
             case color of
@@ -426,6 +469,9 @@ viewIconButton options =
 
                 OutlinedGray ->
                     "btn-outline-secondary"
+
+                OutlinedRed ->
+                    "btn-outline-danger"
 
                 FilledGreen ->
                     "btn-primary"
