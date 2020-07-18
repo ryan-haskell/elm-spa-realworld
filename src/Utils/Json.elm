@@ -1,4 +1,9 @@
-module Utils.Json exposing (maybe, record, withField)
+module Utils.Json exposing
+    ( maybe
+    , record
+    , withDefault
+    , withField
+    )
 
 import Json.Decode as Json
 import Json.Encode as Encode
@@ -20,6 +25,11 @@ withField :
     -> Json.Decoder value
 withField str decoder =
     apply (Json.field str decoder)
+
+
+withDefault : value -> Json.Decoder value -> Json.Decoder value
+withDefault fallback decoder =
+    Json.maybe decoder |> Json.map (Maybe.withDefault fallback)
 
 
 

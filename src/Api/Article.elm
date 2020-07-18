@@ -93,11 +93,12 @@ feed options =
 
 get :
     { slug : String
+    , token : Maybe Token
     , onResponse : Data Article -> msg
     }
     -> Cmd msg
 get options =
-    Http.get
+    Api.Token.get options.token
         { url = "https://conduit.productionready.io/api/articles/" ++ options.slug
         , expect =
             Api.Data.expectJson options.onResponse

@@ -92,7 +92,7 @@ delete :
     { token : Token
     , articleSlug : String
     , commentId : Int
-    , onResponse : Data () -> msg
+    , onResponse : Data Int -> msg
     }
     -> Cmd msg
 delete options =
@@ -103,5 +103,5 @@ delete options =
                 ++ "/comments/"
                 ++ String.fromInt options.commentId
         , expect =
-            Api.Data.expectJson options.onResponse (Json.succeed ())
+            Api.Data.expectJson options.onResponse (Json.succeed options.commentId)
         }

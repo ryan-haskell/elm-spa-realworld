@@ -16,12 +16,13 @@ import Api.Data exposing (Data)
 import Api.Token exposing (Token)
 import Http
 import Json.Decode as Json
+import Utils.Json
 
 
 type alias Profile =
     { username : String
     , bio : Maybe String
-    , image : Maybe String
+    , image : String
     , following : Bool
     }
 
@@ -31,7 +32,7 @@ decoder =
     Json.map4 Profile
         (Json.field "username" Json.string)
         (Json.field "bio" (Json.maybe Json.string))
-        (Json.field "image" (Json.maybe Json.string))
+        (Json.field "image" (Json.string |> Utils.Json.withDefault "https://static.productionready.io/images/smiley-cyrus.jpg"))
         (Json.field "following" Json.bool)
 
 

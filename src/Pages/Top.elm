@@ -7,7 +7,7 @@ import Api.Data exposing (Data)
 import Api.User exposing (User)
 import Browser.Navigation as Nav
 import Html exposing (..)
-import Html.Attributes exposing (class, classList, href, src)
+import Html.Attributes exposing (alt, class, classList, href, src)
 import Html.Events as Events
 import Shared
 import Spa.Document exposing (Document)
@@ -219,13 +219,7 @@ viewArticlePreview article =
     div [ class "article-preview" ]
         [ div [ class "article-meta" ]
             [ a [ href ("/profile/" ++ article.author.username) ]
-                [ img
-                    [ src
-                        (article.author.image
-                            |> Maybe.withDefault "https://static.productionready.io/images/smiley-cyrus.jpg"
-                        )
-                    ]
-                    []
+                [ img [ src article.author.image, alt article.author.username ] []
                 ]
             , div [ class "info" ]
                 [ a [ class "author", href ("/profile/" ++ article.author.username) ] [ text article.author.username ]

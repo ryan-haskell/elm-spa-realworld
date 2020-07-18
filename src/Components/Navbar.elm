@@ -19,16 +19,12 @@ view options =
             [ a [ class "navbar-brand", href (Route.toString Route.Top) ] [ text "conduit" ]
             , ul [ class "nav navbar-nav pull-xs-right" ] <|
                 case options.user of
-                    Just user ->
+                    Just _ ->
                         List.concat
                             [ List.map (viewLink options.currentRoute) <|
                                 [ ( "Home", Route.Top )
-                                , ( "New Post", Route.Editor )
+                                , ( "New Article", Route.Editor )
                                 , ( "Settings", Route.Settings )
-                                , ( user.username
-                                  , Route.Profile__Username_String
-                                        { username = user.username }
-                                  )
                                 ]
                             , [ li [ class "nav-item" ]
                                     [ a

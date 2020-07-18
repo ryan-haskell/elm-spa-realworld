@@ -26,7 +26,7 @@ type alias User =
     , token : Token
     , username : String
     , bio : Maybe String
-    , image : Maybe String
+    , image : String
     }
 
 
@@ -37,7 +37,7 @@ decoder =
         (Json.field "token" Api.Token.decoder)
         (Json.field "username" Json.string)
         (Json.field "bio" (Json.maybe Json.string))
-        (Json.field "image" (Json.maybe Json.string))
+        (Json.field "image" (Json.string |> Utils.Json.withDefault "https://static.productionready.io/images/smiley-cyrus.jpg"))
 
 
 encode : User -> Json.Value
@@ -46,7 +46,7 @@ encode user =
         [ ( "username", Encode.string user.username )
         , ( "email", Encode.string user.email )
         , ( "token", Api.Token.encode user.token )
-        , ( "image", Utils.Json.maybe Encode.string user.image )
+        , ( "image", Encode.string user.image )
         , ( "bio", Utils.Json.maybe Encode.string user.bio )
         ]
 
