@@ -1,11 +1,20 @@
 module Pages.Editor exposing (Model, Msg, Params, page)
 
+import Api.Article exposing (Article)
+import Api.Data exposing (Data)
+import Api.User exposing (User)
+import Browser.Navigation exposing (Key)
+import Components.Editor exposing (Field, Form)
 import Html exposing (..)
-import Html.Attributes exposing (attribute, class, placeholder, type_)
+import Html.Attributes exposing (attribute, class, placeholder, type_, value)
+import Html.Events as Events
 import Shared
 import Spa.Document exposing (Document)
+import Spa.Generated.Route as Route
 import Spa.Page as Page exposing (Page)
 import Spa.Url exposing (Url)
+import Utils.Auth
+import Utils.Route
 
 
 page : Page Params Model Msg
@@ -14,7 +23,7 @@ page =
         { init = init
         , update = update
         , subscriptions = subscriptions
-        , view = view
+        , view = Utils.Auth.protected view
         , save = save
         , load = load
         }
@@ -29,12 +38,27 @@ type alias Params =
 
 
 type alias Model =
-    {}
+    { key : Key
+    , user : Maybe User
+    , form : Form
+    , article : Data Article
+    }
 
 
 init : Shared.Model -> Url Params -> ( Model, Cmd Msg )
 init shared { params } =
-    ( {}, Cmd.none )
+    ( { key = shared.key
+      , user = shared.user
+      , form =
+            { title = ""
+            , description = ""
+            , body = ""
+            , tags = ""
+            }
+      , article = Api.Data.NotAsked
+      }
+    , Cmd.none
+    )
 
 
 
@@ -42,14 +66,52 @@ init shared { params } =
 
 
 type Msg
-    = ReplaceMe
+    = SubmittedForm User
+    | Updated Field String
+    | GotArticle (Data Article)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        ReplaceMe ->
-            ( model, Cmd.none )
+        Updated field value ->
+            ( { model
+                | form =
+                    Components.Editor.updateField
+                        field
+                        value
+                        model.form
+              }
+            , Cmd.none
+            )
+
+        SubmittedForm user ->
+            ( model
+            , Api.Article.create
+                { token = user.token
+                , article =
+                    { title = model.form.title
+                    , description = model.form.description
+                    , body = model.form.body
+                    , tags =
+                        model.form.tags
+                            |> String.split ","
+                            |> List.map String.trim
+                    }
+                , onResponse = GotArticle
+                }
+            )
+
+        GotArticle article ->
+            ( { model | article = article }
+            , case article of
+                Api.Data.Success newArticle ->
+                    Utils.Route.navigate model.key
+                        (Route.Article__Slug_String { slug = newArticle.slug })
+
+                _ ->
+                    Cmd.none
+            )
 
 
 save : Model -> Shared.Model -> Shared.Model
@@ -71,35 +133,16 @@ subscriptions model =
 -- VIEW
 
 
-view : Model -> Document Msg
-view model =
-    { title = "New Post"
+view : User -> Model -> Document Msg
+view user model =
+    { title = "New Article"
     , body =
-        [ div [ class "editor-page" ]
-            [ div [ class "container page" ]
-                [ div [ class "row" ]
-                    [ div [ class "col-md-10 offset-md-1 col-xs-12" ]
-                        [ form []
-                            [ fieldset []
-                                [ fieldset [ class "form-group" ]
-                                    [ input [ class "form-control form-control-lg", placeholder "Article Title", type_ "text" ] []
-                                    ]
-                                , fieldset [ class "form-group" ]
-                                    [ input [ class "form-control", placeholder "What's this article about?", type_ "text" ] []
-                                    ]
-                                , fieldset [ class "form-group" ]
-                                    [ textarea [ class "form-control", placeholder "Write your article (in markdown)", attribute "rows" "8" ] []
-                                    ]
-                                , fieldset [ class "form-group" ]
-                                    [ input [ class "form-control", placeholder "Enter tags", type_ "text" ] []
-                                    , div [ class "tag-list" ] []
-                                    ]
-                                , button [ class "btn btn-lg pull-xs-right btn-primary", type_ "button" ] [ text "Publish Article" ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ]
+        [ Components.Editor.view
+            { onFormSubmit = SubmittedForm user
+            , form = model.form
+            , onUpdate = Updated
+            , label = "Publish Article"
+            , article = model.article
+            }
         ]
     }

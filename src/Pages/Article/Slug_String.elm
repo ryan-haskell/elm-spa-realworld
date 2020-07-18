@@ -264,7 +264,19 @@ viewArticle model article =
                 ]
             ]
         , div [ class "container page" ]
-            [ div [ class "row article-content" ] [ Markdown.toHtml [ class "col-md-12" ] article.body ]
+            [ div [ class "row article-content" ]
+                [ div [ class "col-md-12" ]
+                    [ Markdown.toHtml [] article.body ]
+                , if List.isEmpty article.tags then
+                    text ""
+
+                  else
+                    ul [ class "tag-list" ]
+                        (List.map
+                            (\tag -> li [ class "tag-default tag-pill tag-outline" ] [ text tag ])
+                            article.tags
+                        )
+                ]
             , hr [] []
             , div [ class "article-actions" ] [ viewArticleMeta model article ]
             , viewCommentSection model article

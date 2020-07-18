@@ -128,7 +128,7 @@ create options =
                         [ ( "title", Encode.string options.article.title )
                         , ( "description", Encode.string options.article.description )
                         , ( "body", Encode.string options.article.body )
-                        , ( "tags", Encode.list Encode.string options.article.tags )
+                        , ( "tagList", Encode.list Encode.string options.article.tags )
                         ]
                   )
                 ]
