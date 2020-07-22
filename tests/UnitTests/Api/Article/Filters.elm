@@ -1,6 +1,6 @@
 module UnitTests.Api.Article.Filters exposing (suite)
 
-import Api.Article.Filters as Filters exposing (Filters)
+import Api.Article.Filters as Filters
 import Expect
 import Test exposing (..)
 
@@ -29,25 +29,25 @@ suite =
             [ test "returns limit and offset by default" <|
                 \_ ->
                     Filters.create
-                        |> Filters.toQueryString
+                        |> Filters.toQueryString 1
                         |> Expect.equal "?limit=20&offset=0"
             , test "supports tag filter" <|
                 \_ ->
                     Filters.create
                         |> Filters.withTag "dragons"
-                        |> Filters.toQueryString
+                        |> Filters.toQueryString 1
                         |> Expect.equal "?limit=20&offset=0&tag=dragons"
             , test "supports author filter" <|
                 \_ ->
                     Filters.create
                         |> Filters.byAuthor "ryan"
-                        |> Filters.toQueryString
+                        |> Filters.toQueryString 1
                         |> Expect.equal "?limit=20&offset=0&author=ryan"
             , test "supports favorited filter" <|
                 \_ ->
                     Filters.create
                         |> Filters.favoritedBy "erik"
-                        |> Filters.toQueryString
+                        |> Filters.toQueryString 1
                         |> Expect.equal "?limit=20&offset=0&favorited=erik"
             , test "supports multiple filters" <|
                 \_ ->
@@ -55,7 +55,7 @@ suite =
                         |> Filters.byAuthor "ryan"
                         |> Filters.withTag "dragons"
                         |> Filters.favoritedBy "erik"
-                        |> Filters.toQueryString
+                        |> Filters.toQueryString 1
                         |> Expect.equal "?limit=20&offset=0&tag=dragons&author=ryan&favorited=erik"
             ]
         ]
