@@ -12,17 +12,17 @@ suite =
             [ test "works with page 1" <|
                 \_ ->
                     Filters.pageQueryParameters 1
-                        |> Expect.equal "?limit=20&offset=0"
-            , test "increases offset by a multiple of 20" <|
+                        |> Expect.equal "?limit=25&offset=0"
+            , test "increases offset by a multiple of 25" <|
                 \_ ->
                     [ Filters.pageQueryParameters 2
                     , Filters.pageQueryParameters 3
                     , Filters.pageQueryParameters 4
                     ]
                         |> Expect.equalLists
-                            [ "?limit=20&offset=20"
-                            , "?limit=20&offset=40"
-                            , "?limit=20&offset=60"
+                            [ "?limit=25&offset=20"
+                            , "?limit=25&offset=50"
+                            , "?limit=25&offset=75"
                             ]
             ]
         , describe "toQueryString"
@@ -30,25 +30,25 @@ suite =
                 \_ ->
                     Filters.create
                         |> Filters.toQueryString 1
-                        |> Expect.equal "?limit=20&offset=0"
+                        |> Expect.equal "?limit=25&offset=0"
             , test "supports tag filter" <|
                 \_ ->
                     Filters.create
                         |> Filters.withTag "dragons"
                         |> Filters.toQueryString 1
-                        |> Expect.equal "?limit=20&offset=0&tag=dragons"
+                        |> Expect.equal "?limit=25&offset=0&tag=dragons"
             , test "supports author filter" <|
                 \_ ->
                     Filters.create
                         |> Filters.byAuthor "ryan"
                         |> Filters.toQueryString 1
-                        |> Expect.equal "?limit=20&offset=0&author=ryan"
+                        |> Expect.equal "?limit=25&offset=0&author=ryan"
             , test "supports favorited filter" <|
                 \_ ->
                     Filters.create
                         |> Filters.favoritedBy "erik"
                         |> Filters.toQueryString 1
-                        |> Expect.equal "?limit=20&offset=0&favorited=erik"
+                        |> Expect.equal "?limit=25&offset=0&favorited=erik"
             , test "supports multiple filters" <|
                 \_ ->
                     Filters.create
@@ -56,6 +56,6 @@ suite =
                         |> Filters.withTag "dragons"
                         |> Filters.favoritedBy "erik"
                         |> Filters.toQueryString 1
-                        |> Expect.equal "?limit=20&offset=0&tag=dragons&author=ryan&favorited=erik"
+                        |> Expect.equal "?limit=25&offset=0&tag=dragons&author=ryan&favorited=erik"
             ]
         ]
