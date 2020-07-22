@@ -1,7 +1,7 @@
 module Pages.Profile.Username_String exposing (Model, Msg, Params, page)
 
 import Api.Article exposing (Article)
-import Api.Article.Filters as Filters exposing (Filters)
+import Api.Article.Filters as Filters
 import Api.Data exposing (Data)
 import Api.Profile exposing (Profile)
 import Api.Token exposing (Token)
@@ -10,7 +10,7 @@ import Components.ArticleList
 import Components.IconButton as IconButton
 import Components.NotFound
 import Html exposing (..)
-import Html.Attributes exposing (class, classList, href, src)
+import Html.Attributes exposing (class, classList, src)
 import Html.Events as Events
 import Shared
 import Spa.Document exposing (Document)
@@ -200,17 +200,17 @@ update msg model =
 
 
 save : Model -> Shared.Model -> Shared.Model
-save model shared =
+save _ shared =
     shared
 
 
 load : Shared.Model -> Model -> ( Model, Cmd Msg )
-load shared model =
+load _ model =
     ( model, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.none
 
 

@@ -5,18 +5,15 @@ import Api.Article.Filters as Filters
 import Api.Article.Tag exposing (Tag)
 import Api.Data exposing (Data)
 import Api.User exposing (User)
-import Browser.Navigation as Nav
 import Components.ArticleList
 import Html exposing (..)
-import Html.Attributes exposing (alt, class, classList, href, src)
+import Html.Attributes exposing (class, classList)
 import Html.Events as Events
 import Shared
 import Spa.Document exposing (Document)
 import Spa.Page as Page exposing (Page)
 import Spa.Url exposing (Url)
-import Url
 import Utils.Maybe
-import Utils.Time
 
 
 page : Page Params Model Msg
@@ -178,17 +175,17 @@ update msg model =
 
 
 save : Model -> Shared.Model -> Shared.Model
-save model shared =
+save _ shared =
     shared
 
 
 load : Shared.Model -> Model -> ( Model, Cmd Msg )
-load shared model =
+load _ model =
     ( model, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.none
 
 

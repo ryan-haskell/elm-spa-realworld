@@ -6,12 +6,11 @@ import Api.User exposing (User)
 import Browser.Navigation exposing (Key)
 import Components.Editor exposing (Field, Form)
 import Html exposing (..)
-import Html.Attributes exposing (class)
 import Shared
 import Spa.Document exposing (Document)
 import Spa.Generated.Route as Route
 import Spa.Page as Page exposing (Page)
-import Spa.Url as Url exposing (Url)
+import Spa.Url exposing (Url)
 import Utils.Auth
 import Utils.Route
 
@@ -134,17 +133,17 @@ update msg model =
 
 
 save : Model -> Shared.Model -> Shared.Model
-save model shared =
+save _ shared =
     shared
 
 
 load : Shared.Model -> Model -> ( Model, Cmd Msg )
-load shared model =
+load _ model =
     ( model, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.none
 
 

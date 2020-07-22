@@ -6,7 +6,6 @@ import Api.User exposing (User)
 import Browser.Navigation exposing (Key)
 import Components.Editor exposing (Field, Form)
 import Html exposing (..)
-import Html.Attributes exposing (attribute, class, placeholder, type_, value)
 import Html.Events as Events
 import Shared
 import Spa.Document exposing (Document)
@@ -46,7 +45,7 @@ type alias Model =
 
 
 init : Shared.Model -> Url Params -> ( Model, Cmd Msg )
-init shared { params } =
+init shared _ =
     ( { key = shared.key
       , user = shared.user
       , form =
@@ -115,17 +114,17 @@ update msg model =
 
 
 save : Model -> Shared.Model -> Shared.Model
-save model shared =
+save _ shared =
     shared
 
 
 load : Shared.Model -> Model -> ( Model, Cmd Msg )
-load shared model =
+load _ model =
     ( model, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.none
 
 

@@ -5,7 +5,6 @@ module Api.Data exposing
     , toMaybe
     )
 
-import Html.Attributes exposing (value)
 import Http
 import Json.Decode as Json
 
@@ -48,7 +47,7 @@ expectJson toMsg decoder =
     Http.expectStringResponse (fromResult >> toMsg) <|
         \response ->
             case response of
-                Http.BadUrl_ url ->
+                Http.BadUrl_ _ ->
                     Err [ "Bad URL" ]
 
                 Http.Timeout_ ->
