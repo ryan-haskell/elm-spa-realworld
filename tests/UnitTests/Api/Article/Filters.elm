@@ -20,7 +20,7 @@ suite =
                     , Filters.pageQueryParameters 4
                     ]
                         |> Expect.equalLists
-                            [ "?limit=25&offset=20"
+                            [ "?limit=25&offset=25"
                             , "?limit=25&offset=50"
                             , "?limit=25&offset=75"
                             ]
