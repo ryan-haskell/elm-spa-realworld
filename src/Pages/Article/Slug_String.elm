@@ -6,6 +6,7 @@ import Api.Data exposing (Data)
 import Api.Profile exposing (Profile)
 import Api.User exposing (User)
 import Browser.Navigation exposing (Key)
+import Components.IconButton as IconButton
 import Html exposing (..)
 import Html.Attributes exposing (attribute, class, href, placeholder, src, value)
 import Html.Events as Events
@@ -15,6 +16,7 @@ import Spa.Document exposing (Document)
 import Spa.Generated.Route as Route
 import Spa.Page as Page exposing (Page)
 import Spa.Url exposing (Url)
+import Utils.Maybe
 import Utils.Route
 import Utils.Time
 
@@ -315,9 +317,9 @@ viewControls article user =
             [ i [ class "ion-edit" ] []
             , text "Edit article"
             ]
-        , viewIconButton
-            { color = OutlinedRed
-            , icon = Trash
+        , IconButton.view
+            { color = IconButton.OutlinedRed
+            , icon = IconButton.Trash
             , label = "Delete article"
             , onClick = ClickedDeleteArticle user article
             }
@@ -325,32 +327,32 @@ viewControls article user =
 
     else
         [ if article.author.following then
-            viewIconButton
-                { color = FilledGray
-                , icon = Plus
+            IconButton.view
+                { color = IconButton.FilledGray
+                , icon = IconButton.Plus
                 , label = "Unfollow " ++ article.author.username
                 , onClick = ClickedUnfollow user article.author
                 }
 
           else
-            viewIconButton
-                { color = OutlinedGray
-                , icon = Plus
+            IconButton.view
+                { color = IconButton.OutlinedGray
+                , icon = IconButton.Plus
                 , label = "Follow " ++ article.author.username
                 , onClick = ClickedFollow user article.author
                 }
         , if article.favorited then
-            viewIconButton
-                { color = FilledGreen
-                , icon = Heart
+            IconButton.view
+                { color = IconButton.FilledGreen
+                , icon = IconButton.Heart
                 , label = "Unfavorite Post (" ++ String.fromInt article.favoritesCount ++ ")"
                 , onClick = ClickedUnfavorite user article
                 }
 
           else
-            viewIconButton
-                { color = OutlinedGreen
-                , icon = Heart
+            IconButton.view
+                { color = IconButton.OutlinedGreen
+                , icon = IconButton.Heart
                 , label = "Favorite Post (" ++ String.fromInt article.favoritesCount ++ ")"
                 , onClick = ClickedFavorite user article
                 }
@@ -402,8 +404,8 @@ viewComment : Maybe User -> Article -> Comment -> Html Msg
 viewComment currentUser article comment =
     let
         viewCommentActions =
-            case currentUser of
-                Just user ->
+            Utils.Maybe.view currentUser <|
+                \user ->
                     if user.username == comment.author.username then
                         span
                             [ class "mod-options"
@@ -413,9 +415,6 @@ viewComment currentUser article comment =
 
                     else
                         text ""
-
-                Nothing ->
-                    text ""
     in
     div [ class "card" ]
         [ div [ class "card-block" ]
@@ -431,70 +430,4 @@ viewComment currentUser article comment =
             , span [ class "date-posted" ] [ text (Utils.Time.formatDate comment.createdAt) ]
             , viewCommentActions
             ]
-        ]
-
-
-
--- ICON BUTTONS
-
-
-type Color
-    = OutlinedGray
-    | OutlinedGreen
-    | OutlinedRed
-    | FilledGray
-    | FilledGreen
-
-
-type Icon
-    = Plus
-    | Heart
-    | Trash
-
-
-viewIconButton :
-    { color : Color
-    , icon : Icon
-    , label : String
-    , onClick : msg
-    }
-    -> Html msg
-viewIconButton options =
-    let
-        toIconClass : Icon -> String
-        toIconClass icon =
-            case icon of
-                Plus ->
-                    "ion-plus-round"
-
-                Heart ->
-                    "ion-heart"
-
-                Trash ->
-                    "ion-trash-a"
-
-        toButtonClass : Color -> String
-        toButtonClass color =
-            case color of
-                OutlinedGreen ->
-                    "btn-outline-primary"
-
-                OutlinedGray ->
-                    "btn-outline-secondary"
-
-                OutlinedRed ->
-                    "btn-outline-danger"
-
-                FilledGreen ->
-                    "btn-primary"
-
-                FilledGray ->
-                    "btn-secondary"
-    in
-    button
-        [ Events.onClick options.onClick
-        , class ("btn btn-sm " ++ toButtonClass options.color)
-        ]
-        [ i [ class (toIconClass options.icon) ] []
-        , text options.label
         ]

@@ -6,6 +6,7 @@ import Api.Article.Tag exposing (Tag)
 import Api.Data exposing (Data)
 import Api.User exposing (User)
 import Browser.Navigation as Nav
+import Components.ArticleList
 import Html exposing (..)
 import Html.Attributes exposing (alt, class, classList, href, src)
 import Html.Events as Events
@@ -14,6 +15,7 @@ import Spa.Document exposing (Document)
 import Spa.Page as Page exposing (Page)
 import Spa.Url exposing (Url)
 import Url
+import Utils.Maybe
 import Utils.Time
 
 
@@ -54,21 +56,51 @@ type Tab
 
 init : Shared.Model -> Url Params -> ( Model, Cmd Msg )
 init shared _ =
+    let
+        activeTab : Tab
+        activeTab =
+            shared.user
+                |> Maybe.map FeedFor
+                |> Maybe.withDefault Global
+    in
     ( { user = shared.user
       , page = 1
       , articles = Api.Data.Loading
       , tags = Api.Data.Loading
-      , activeTab = Global
+      , activeTab = activeTab
       }
     , Cmd.batch
-        [ Api.Article.list
-            { filters = Filters.create
-            , token = Maybe.map .token shared.user
-            , onResponse = GotArticles
-            }
+        [ fetchArticlesForTab shared activeTab
         , Api.Article.Tag.list { onResponse = GotTags }
         ]
     )
+
+
+fetchArticlesForTab : { model | user : Maybe User } -> Tab -> Cmd Msg
+fetchArticlesForTab model tab =
+    case tab of
+        Global ->
+            Api.Article.list
+                { filters = Filters.create
+                , token = Maybe.map .token model.user
+                , onResponse = GotArticles
+                }
+
+        FeedFor user ->
+            Api.Article.feed
+                { token = user.token
+                , page = 1
+                , onResponse = GotArticles
+                }
+
+        TagFilter tag ->
+            Api.Article.list
+                { filters =
+                    Filters.create
+                        |> Filters.withTag tag
+                , token = Maybe.map .token model.user
+                , onResponse = GotArticles
+                }
 
 
 
@@ -79,6 +111,9 @@ type Msg
     = GotArticles (Data { articles : List Article, count : Int })
     | GotTags (Data (List Tag))
     | SelectedTab Tab
+    | ClickedFavorite User Article
+    | ClickedUnfavorite User Article
+    | UpdatedArticle (Data Article)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -100,23 +135,46 @@ update msg model =
                 , articles = Api.Data.Loading
                 , page = 1
               }
-            , Api.Article.list
-                { filters =
-                    case tab of
-                        Global ->
-                            Filters.create
+            , fetchArticlesForTab model tab
+            )
 
-                        FeedFor user ->
-                            Filters.create
-                                |> Filters.favoritedBy user.username
-
-                        TagFilter tag ->
-                            Filters.create
-                                |> Filters.withTag tag
-                , token = Maybe.map .token model.user
-                , onResponse = GotArticles
+        ClickedFavorite user article ->
+            ( model
+            , Api.Article.favorite
+                { token = user.token
+                , slug = article.slug
+                , onResponse = UpdatedArticle
                 }
             )
+
+        ClickedUnfavorite user article ->
+            ( model
+            , Api.Article.unfavorite
+                { token = user.token
+                , slug = article.slug
+                , onResponse = UpdatedArticle
+                }
+            )
+
+        UpdatedArticle (Api.Data.Success article) ->
+            let
+                updateArticle : List Article -> List Article
+                updateArticle =
+                    List.map
+                        (\a ->
+                            if a.slug == article.slug then
+                                article
+
+                            else
+                                a
+                        )
+            in
+            ( { model | articles = Api.Data.map updateArticle model.articles }
+            , Cmd.none
+            )
+
+        UpdatedArticle _ ->
+            ( model, Cmd.none )
 
 
 save : Model -> Shared.Model -> Shared.Model
@@ -152,7 +210,14 @@ view model =
             , div [ class "container page" ]
                 [ div [ class "row" ]
                     [ div [ class "col-md-9" ] <|
-                        (viewTabs model :: viewArticles model.articles)
+                        (viewTabs model
+                            :: Components.ArticleList.view
+                                { user = model.user
+                                , articles = model.articles
+                                , onFavorite = ClickedFavorite
+                                , onUnfavorite = ClickedUnfavorite
+                                }
+                        )
                     , div [ class "col-md-3" ] [ viewTags model.tags ]
                     ]
                 ]
@@ -170,8 +235,8 @@ viewTabs :
 viewTabs model =
     div [ class "feed-toggle" ]
         [ ul [ class "nav nav-pills outline-active" ]
-            [ case model.user of
-                Just user ->
+            [ Utils.Maybe.view model.user <|
+                \user ->
                     li [ class "nav-item" ]
                         [ button
                             [ class "nav-link"
@@ -180,9 +245,6 @@ viewTabs model =
                             ]
                             [ text "Your Feed" ]
                         ]
-
-                Nothing ->
-                    text ""
             , li [ class "nav-item" ]
                 [ button
                     [ class "nav-link"
@@ -197,50 +259,6 @@ viewTabs model =
 
                 _ ->
                     text ""
-            ]
-        ]
-
-
-viewArticles : Data (List Article) -> List (Html msg)
-viewArticles data =
-    case data of
-        Api.Data.Loading ->
-            [ div [ class "article-preview" ] [ text "Loading..." ] ]
-
-        Api.Data.Success articles ->
-            List.map viewArticlePreview articles
-
-        _ ->
-            []
-
-
-viewArticlePreview : Article -> Html msg
-viewArticlePreview article =
-    div [ class "article-preview" ]
-        [ div [ class "article-meta" ]
-            [ a [ href ("/profile/" ++ article.author.username) ]
-                [ img [ src article.author.image, alt article.author.username ] []
-                ]
-            , div [ class "info" ]
-                [ a [ class "author", href ("/profile/" ++ article.author.username) ] [ text article.author.username ]
-                , span [ class "date" ] [ text (Utils.Time.formatDate article.createdAt) ]
-                ]
-            , button [ class "btn btn-outline-primary btn-sm pull-xs-right" ]
-                [ i [ class "ion-heart" ] []
-                , text " "
-                , text (String.fromInt article.favoritesCount)
-                ]
-            ]
-        , a [ class "preview-link", href ("/article/" ++ article.slug) ]
-            [ h1 [] [ text article.title ]
-            , p [] [ text article.description ]
-            , span [] [ text "Read more..." ]
-            , if List.isEmpty article.tags then
-                text ""
-
-              else
-                ul [ class "tag-list" ]
-                    (List.map (\tag -> li [ class "tag-default tag-pill tag-outline" ] [ text tag ]) article.tags)
             ]
         ]
 

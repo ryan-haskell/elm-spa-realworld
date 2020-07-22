@@ -12,6 +12,7 @@ import Spa.Document exposing (Document)
 import Spa.Page as Page exposing (Page)
 import Spa.Url exposing (Url)
 import Utils.Auth exposing (protected)
+import Utils.Maybe
 
 
 page : Page Params Model Msg
@@ -166,12 +167,9 @@ view user model =
                         [ h1 [ class "text-xs-center" ] [ text "Your Settings" ]
                         , br [] []
                         , Components.ErrorList.view model.errors
-                        , case model.message of
-                            Just message ->
+                        , Utils.Maybe.view model.message <|
+                            \message ->
                                 p [ class "text-success" ] [ text message ]
-
-                            Nothing ->
-                                text ""
                         , form [ Events.onSubmit (SubmittedForm user) ]
                             [ fieldset []
                                 [ fieldset [ class "form-group" ]

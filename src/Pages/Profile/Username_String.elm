@@ -1,11 +1,22 @@
 module Pages.Profile.Username_String exposing (Model, Msg, Params, page)
 
+import Api.Article exposing (Article)
+import Api.Article.Filters as Filters exposing (Filters)
+import Api.Data exposing (Data)
+import Api.Profile exposing (Profile)
+import Api.Token exposing (Token)
+import Api.User exposing (User)
+import Components.ArticleList
+import Components.IconButton as IconButton
+import Components.NotFound
 import Html exposing (..)
-import Html.Attributes exposing (class, href, src)
+import Html.Attributes exposing (class, classList, href, src)
+import Html.Events as Events
 import Shared
 import Spa.Document exposing (Document)
 import Spa.Page as Page exposing (Page)
 import Spa.Url exposing (Url)
+import Utils.Maybe
 
 
 page : Page Params Model Msg
@@ -30,14 +41,61 @@ type alias Params =
 
 type alias Model =
     { username : String
+    , user : Maybe User
+    , profile : Data Profile
+    , articles : Data (List Article)
+    , selectedTab : Tab
     }
+
+
+type Tab
+    = MyArticles
+    | FavoritedArticles
 
 
 init : Shared.Model -> Url Params -> ( Model, Cmd Msg )
 init shared { params } =
-    ( { username = params.username }
-    , Cmd.none
+    let
+        token : Maybe Token
+        token =
+            Maybe.map .token shared.user
+    in
+    ( { username = params.username
+      , user = shared.user
+      , profile = Api.Data.Loading
+      , articles = Api.Data.Loading
+      , selectedTab = MyArticles
+      }
+    , Cmd.batch
+        [ Api.Profile.get
+            { token = token
+            , username = params.username
+            , onResponse = GotProfile
+            }
+        , fetchArticlesBy token params.username
+        ]
     )
+
+
+fetchArticlesBy : Maybe Token -> String -> Cmd Msg
+fetchArticlesBy token username =
+    Api.Article.list
+        { token = token
+        , filters =
+            Filters.create
+                |> Filters.byAuthor username
+        , onResponse = GotArticles
+        }
+
+
+fetchArticlesFavoritedBy : Maybe Token -> String -> Cmd Msg
+fetchArticlesFavoritedBy token username =
+    Api.Article.list
+        { token = token
+        , filters =
+            Filters.create |> Filters.favoritedBy username
+        , onResponse = GotArticles
+        }
 
 
 
@@ -45,13 +103,99 @@ init shared { params } =
 
 
 type Msg
-    = ReplaceMe
+    = GotProfile (Data Profile)
+    | GotArticles (Data { articles : List Article, count : Int })
+    | Clicked Tab
+    | ClickedFavorite User Article
+    | ClickedUnfavorite User Article
+    | UpdatedArticle (Data Article)
+    | ClickedFollow User Profile
+    | ClickedUnfollow User Profile
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        ReplaceMe ->
+        GotProfile profile ->
+            ( { model | profile = profile }
+            , Cmd.none
+            )
+
+        ClickedFollow user profile ->
+            ( model
+            , Api.Profile.follow
+                { token = user.token
+                , username = profile.username
+                , onResponse = GotProfile
+                }
+            )
+
+        ClickedUnfollow user profile ->
+            ( model
+            , Api.Profile.unfollow
+                { token = user.token
+                , username = profile.username
+                , onResponse = GotProfile
+                }
+            )
+
+        GotArticles articles ->
+            ( { model | articles = Api.Data.map .articles articles }
+            , Cmd.none
+            )
+
+        Clicked MyArticles ->
+            ( { model
+                | selectedTab = MyArticles
+                , articles = Api.Data.Loading
+              }
+            , fetchArticlesBy (Maybe.map .token model.user) model.username
+            )
+
+        Clicked FavoritedArticles ->
+            ( { model
+                | selectedTab = FavoritedArticles
+                , articles = Api.Data.Loading
+              }
+            , fetchArticlesFavoritedBy (Maybe.map .token model.user) model.username
+            )
+
+        ClickedFavorite user article ->
+            ( model
+            , Api.Article.favorite
+                { token = user.token
+                , slug = article.slug
+                , onResponse = UpdatedArticle
+                }
+            )
+
+        ClickedUnfavorite user article ->
+            ( model
+            , Api.Article.unfavorite
+                { token = user.token
+                , slug = article.slug
+                , onResponse = UpdatedArticle
+                }
+            )
+
+        UpdatedArticle (Api.Data.Success article) ->
+            let
+                updateArticle : List Article -> List Article
+                updateArticle =
+                    List.map
+                        (\a ->
+                            if a.slug == article.slug then
+                                article
+
+                            else
+                                a
+                        )
+            in
+            ( { model | articles = Api.Data.map updateArticle model.articles }
+            , Cmd.none
+            )
+
+        UpdatedArticle _ ->
             ( model, Cmd.none )
 
 
@@ -76,86 +220,102 @@ subscriptions model =
 
 view : Model -> Document Msg
 view model =
-    { title = model.username
+    { title = "Profile"
     , body =
-        [ div [ class "profile-page" ]
-            [ div [ class "user-info" ]
+        case model.profile of
+            Api.Data.Success profile ->
+                [ viewProfile profile model ]
+
+            Api.Data.Failure _ ->
+                [ Components.NotFound.view ]
+
+            _ ->
+                []
+    }
+
+
+viewProfile : Profile -> Model -> Html Msg
+viewProfile profile model =
+    let
+        isViewingOwnProfile : Bool
+        isViewingOwnProfile =
+            Maybe.map .username model.user == Just profile.username
+
+        viewUserInfo : Html Msg
+        viewUserInfo =
+            div [ class "user-info" ]
                 [ div [ class "container" ]
                     [ div [ class "row" ]
                         [ div [ class "col-xs-12 col-md-10 offset-md-1" ]
-                            [ img [ class "user-img", src "http://i.imgur.com/Qr71crq.jpg" ]
-                                []
-                            , h4 [] [ text model.username ]
-                            , p []
-                                [ text "Cofounder @GoThinkster, lived in Aol's HQ for a few months, kinda looks like Peeta from the Hunger Games          " ]
-                            , button [ class "btn btn-sm btn-outline-secondary action-btn" ]
-                                [ i [ class "ion-plus-round" ] []
-                                , text "Follow Eric Simons"
-                                ]
+                            [ img [ class "user-img", src profile.image ] []
+                            , h4 [] [ text profile.username ]
+                            , Utils.Maybe.view profile.bio
+                                (\bio -> p [] [ text bio ])
+                            , if isViewingOwnProfile then
+                                text ""
+
+                              else
+                                Utils.Maybe.view model.user <|
+                                    \user ->
+                                        if profile.following then
+                                            IconButton.view
+                                                { color = IconButton.FilledGray
+                                                , icon = IconButton.Plus
+                                                , label = "Unfollow " ++ profile.username
+                                                , onClick = ClickedUnfollow user profile
+                                                }
+
+                                        else
+                                            IconButton.view
+                                                { color = IconButton.OutlinedGray
+                                                , icon = IconButton.Plus
+                                                , label = "Follow " ++ profile.username
+                                                , onClick = ClickedFollow user profile
+                                                }
                             ]
                         ]
                     ]
                 ]
-            , div [ class "container" ]
-                [ div [ class "row" ]
-                    [ div [ class "col-xs-12 col-md-10 offset-md-1" ]
-                        [ div [ class "articles-toggle" ]
-                            [ ul [ class "nav nav-pills outline-active" ]
-                                [ li [ class "nav-item" ]
-                                    [ a [ class "nav-link active", href "" ] [ text "My Articles" ]
-                                    ]
-                                , li [ class "nav-item" ]
-                                    [ a [ class "nav-link", href "" ] [ text "Favorited Articles" ]
-                                    ]
-                                ]
-                            ]
-                        , div [ class "article-preview" ]
-                            [ div [ class "article-meta" ]
-                                [ a [ href "" ]
-                                    [ img [ src "http://i.imgur.com/Qr71crq.jpg" ] []
-                                    ]
-                                , div [ class "info" ]
-                                    [ a [ class "author", href "" ] [ text "Eric Simons" ]
-                                    , span [ class "date" ] [ text "January 20th" ]
-                                    ]
-                                , button [ class "btn btn-outline-primary btn-sm pull-xs-right" ]
-                                    [ i [ class "ion-heart" ] []
-                                    , text "29"
-                                    ]
-                                ]
-                            , a [ class "preview-link", href "" ]
-                                [ h1 [] [ text "How to build webapps that scale" ]
-                                , p [] [ text "This is the description for the post." ]
-                                , span [] [ text "Read more..." ]
-                                ]
-                            ]
-                        , div [ class "article-preview" ]
-                            [ div [ class "article-meta" ]
-                                [ a [ href "" ]
-                                    [ img [ src "http://i.imgur.com/N4VcUeJ.jpg" ] []
-                                    ]
-                                , div [ class "info" ]
-                                    [ a [ class "author", href "" ] [ text "Albert Pai" ]
-                                    , span [ class "date" ] [ text "January 20th" ]
-                                    ]
-                                , button [ class "btn btn-outline-primary btn-sm pull-xs-right" ]
-                                    [ i [ class "ion-heart" ] []
-                                    , text "32"
-                                    ]
-                                ]
-                            , a [ class "preview-link", href "" ]
-                                [ h1 [] [ text "The song you won't ever stop singing. No matter how hard you try." ]
-                                , p [] [ text "This is the description for the post." ]
-                                , span [] [ text "Read more..." ]
-                                , ul [ class "tag-list" ]
-                                    [ li [ class "tag-default tag-pill tag-outline" ] [ text "Music" ]
-                                    , li [ class "tag-default tag-pill tag-outline" ] [ text "Song" ]
-                                    ]
-                                ]
-                            ]
-                        ]
+
+        viewTabRow : Html Msg
+        viewTabRow =
+            div [ class "articles-toggle" ]
+                [ ul [ class "nav nav-pills outline-active" ]
+                    (List.map viewTab [ MyArticles, FavoritedArticles ])
+                ]
+
+        viewTab : Tab -> Html Msg
+        viewTab tab =
+            li [ class "nav-item" ]
+                [ button
+                    [ class "nav-link"
+                    , Events.onClick (Clicked tab)
+                    , classList [ ( "active", tab == model.selectedTab ) ]
                     ]
+                    [ text
+                        (case tab of
+                            MyArticles ->
+                                "My Articles"
+
+                            FavoritedArticles ->
+                                "Favorited Articles"
+                        )
+                    ]
+                ]
+    in
+    div [ class "profile-page" ]
+        [ viewUserInfo
+        , div [ class "container" ]
+            [ div [ class "row" ]
+                [ div [ class "col-xs-12 col-md-10 offset-md-1" ]
+                    (viewTabRow
+                        :: Components.ArticleList.view
+                            { user = model.user
+                            , articles = model.articles
+                            , onFavorite = ClickedFavorite
+                            , onUnfavorite = ClickedUnfavorite
+                            }
+                    )
                 ]
             ]
         ]
-    }
