@@ -292,7 +292,7 @@ viewArticleMeta model article =
                     [ img [ src article.author.image ] []
                     ]
               , div [ class "info" ]
-                    [ a [ class "author", href "" ] [ text article.author.username ]
+                    [ a [ class "author", href ("/profile/" ++ article.author.username) ] [ text article.author.username ]
                     , span [ class "date" ] [ text (Utils.Time.formatDate article.createdAt) ]
                     ]
               ]
