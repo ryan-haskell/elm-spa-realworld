@@ -160,9 +160,10 @@ view user model =
             Just form ->
                 [ Components.Editor.view
                     { onFormSubmit = SubmittedForm user form
+                    , title = "Edit Article"
                     , form = form
                     , onUpdate = Updated
-                    , label = "Edit Article"
+                    , buttonLabel = "Save"
                     , article = model.article
                     }
                 ]

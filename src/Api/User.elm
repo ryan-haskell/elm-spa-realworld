@@ -127,7 +127,7 @@ update :
         { user
             | username : String
             , email : String
-            , password : String
+            , password : Maybe String
             , image : String
             , bio : String
         }
@@ -141,12 +141,20 @@ update options =
             Encode.object
                 [ ( "user"
                   , Encode.object
-                        [ ( "username", Encode.string options.user.username )
-                        , ( "email", Encode.string options.user.email )
-                        , ( "password", Encode.string options.user.password )
-                        , ( "image", Encode.string options.user.image )
-                        , ( "bio", Encode.string options.user.bio )
-                        ]
+                        (List.concat
+                            [ [ ( "username", Encode.string options.user.username )
+                              , ( "email", Encode.string options.user.email )
+                              , ( "image", Encode.string options.user.image )
+                              , ( "bio", Encode.string options.user.bio )
+                              ]
+                            , case options.user.password of
+                                Just password ->
+                                    [ ( "password", Encode.string password ) ]
+
+                                Nothing ->
+                                    []
+                            ]
+                        )
                   )
                 ]
     in

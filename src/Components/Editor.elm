@@ -45,13 +45,14 @@ updateField field value form =
 
 view :
     { onFormSubmit : msg
-    , label : String
+    , title : String
     , form :
         { title : String
         , description : String
         , body : String
         , tags : String
         }
+    , buttonLabel : String
     , onUpdate : Field -> String -> msg
     , article : Data Article
     }
@@ -60,8 +61,10 @@ view options =
     div [ class "editor-page" ]
         [ div [ class "container page" ]
             [ div [ class "row" ]
-                [ div [ class "col-md-10 offset-md-1 col-xs-12" ]
-                    [ form [ Events.onSubmit options.onFormSubmit ]
+                [ div [ class "col-md-6 offset-md-3 col-xs-12" ]
+                    [ h1 [ class "text-xs-center" ] [ text options.title ]
+                    , br [] []
+                    , form [ Events.onSubmit options.onFormSubmit ]
                         [ fieldset []
                             [ fieldset [ class "form-group" ]
                                 [ input
@@ -107,7 +110,7 @@ view options =
                             , button
                                 [ class "btn btn-lg pull-xs-right btn-primary"
                                 ]
-                                [ text options.label ]
+                                [ text options.buttonLabel ]
                             ]
                         , case options.article of
                             Api.Data.Failure reasons ->

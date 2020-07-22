@@ -139,9 +139,10 @@ view user model =
     , body =
         [ Components.Editor.view
             { onFormSubmit = SubmittedForm user
+            , title = "New Article"
             , form = model.form
             , onUpdate = Updated
-            , label = "Publish Article"
+            , buttonLabel = "Publish"
             , article = model.article
             }
         ]

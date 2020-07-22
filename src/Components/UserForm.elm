@@ -6,6 +6,7 @@ import Html exposing (..)
 import Html.Attributes exposing (class, href, placeholder, type_, value)
 import Html.Events as Events
 import Spa.Generated.Route as Route exposing (Route)
+import Components.ErrorList
 
 
 type alias Field msg =
@@ -36,8 +37,7 @@ view options =
                         ]
                     , case options.user of
                         Api.Data.Failure reasons ->
-                            ul [ class "error-messages" ]
-                                (List.map (\message -> li [] [ text message ]) reasons)
+                            Components.ErrorList.view reasons
 
                         _ ->
                             text ""
