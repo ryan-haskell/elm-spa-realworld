@@ -1,6 +1,6 @@
 module Api.Article.Filters exposing
     ( Filters, create
-    , withTag, byAuthor, onPage, favoritedBy
+    , withTag, byAuthor, favoritedBy
     , toQueryString
     , pageQueryParameters
     )
@@ -21,7 +21,6 @@ type Filters
         { tag : Maybe String
         , author : Maybe String
         , favorited : Maybe String
-        , page : Int
         }
 
 
@@ -31,7 +30,6 @@ create =
         { tag = Nothing
         , author = Nothing
         , favorited = Nothing
-        , page = 1
         }
 
 
@@ -50,17 +48,12 @@ favoritedBy username (Filters filters) =
     Filters { filters | favorited = Just username }
 
 
-onPage : Int -> Filters -> Filters
-onPage page (Filters filters) =
-    Filters { filters | page = page }
-
-
 
 -- To a query string
 
 
-toQueryString : Filters -> String
-toQueryString (Filters filters) =
+toQueryString : Int -> Filters -> String
+toQueryString page (Filters filters) =
     let
         optionalFilters : List String
         optionalFilters =
@@ -70,18 +63,18 @@ toQueryString (Filters filters) =
                 , filters.favorited |> Maybe.map (String.append "favorited=")
                 ]
     in
-    pageQueryParameters filters.page
+    pageQueryParameters page
         ++ String.concat (List.map (String.append "&") optionalFilters)
 
 
 pageQueryParameters : Int -> String
-pageQueryParameters page =
+pageQueryParameters page_ =
     let
         limit : Int
         limit =
-            20
+            25
     in
     String.join "&"
         [ "?limit=" ++ String.fromInt limit
-        , "offset=" ++ String.fromInt ((page - 1) * limit)
+        , "offset=" ++ String.fromInt ((page_ - 1) * limit)
         ]

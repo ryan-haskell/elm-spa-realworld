@@ -5,25 +5,47 @@ import Api.Data exposing (Data)
 import Api.User exposing (User)
 import Components.IconButton as IconButton
 import Html exposing (..)
-import Html.Attributes exposing (alt, class, href, src)
+import Html.Attributes exposing (alt, class, classList, href, src)
+import Html.Events as Events
 import Utils.Maybe
 import Utils.Time
 
 
 view :
     { user : Maybe User
-    , articles : Data (List Article)
+    , articleListing : Data Api.Article.Listing
     , onFavorite : User -> Article -> msg
     , onUnfavorite : User -> Article -> msg
+    , onPageClick : Int -> msg
     }
     -> List (Html msg)
-view data =
-    case data.articles of
+view options =
+    case options.articleListing of
         Api.Data.Loading ->
             [ div [ class "article-preview" ] [ text "Loading..." ] ]
 
-        Api.Data.Success articles ->
-            List.map (viewArticlePreview data) articles
+        Api.Data.Success listing ->
+            let
+                viewPage : Int -> Html msg
+                viewPage page =
+                    li
+                        [ class "page-item"
+                        , classList [ ( "active", listing.page == page ) ]
+                        ]
+                        [ button
+                            [ class "page-link"
+                            , Events.onClick (options.onPageClick page)
+                            ]
+                            [ text (String.fromInt page) ]
+                        ]
+            in
+            List.concat
+                [ List.map (viewArticlePreview options) listing.articles
+                , [ List.range 1 listing.totalPages
+                        |> List.map viewPage
+                        |> ul [ class "pagination" ]
+                  ]
+                ]
 
         _ ->
             []

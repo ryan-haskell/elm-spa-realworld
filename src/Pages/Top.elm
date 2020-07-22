@@ -38,7 +38,7 @@ type alias Params =
 
 type alias Model =
     { user : Maybe User
-    , articles : Data (List Article)
+    , listing : Data Api.Article.Listing
     , page : Int
     , tags : Data (List Tag)
     , activeTab : Tab
@@ -59,26 +59,37 @@ init shared _ =
             shared.user
                 |> Maybe.map FeedFor
                 |> Maybe.withDefault Global
+
+        model : Model
+        model =
+            { user = shared.user
+            , listing = Api.Data.Loading
+            , page = 1
+            , tags = Api.Data.Loading
+            , activeTab = activeTab
+            }
     in
-    ( { user = shared.user
-      , page = 1
-      , articles = Api.Data.Loading
-      , tags = Api.Data.Loading
-      , activeTab = activeTab
-      }
+    ( model
     , Cmd.batch
-        [ fetchArticlesForTab shared activeTab
+        [ fetchArticlesForTab model
         , Api.Article.Tag.list { onResponse = GotTags }
         ]
     )
 
 
-fetchArticlesForTab : { model | user : Maybe User } -> Tab -> Cmd Msg
-fetchArticlesForTab model tab =
-    case tab of
+fetchArticlesForTab :
+    { model
+        | user : Maybe User
+        , page : Int
+        , activeTab : Tab
+    }
+    -> Cmd Msg
+fetchArticlesForTab model =
+    case model.activeTab of
         Global ->
             Api.Article.list
                 { filters = Filters.create
+                , page = model.page
                 , token = Maybe.map .token model.user
                 , onResponse = GotArticles
                 }
@@ -86,7 +97,7 @@ fetchArticlesForTab model tab =
         FeedFor user ->
             Api.Article.feed
                 { token = user.token
-                , page = 1
+                , page = model.page
                 , onResponse = GotArticles
                 }
 
@@ -95,6 +106,7 @@ fetchArticlesForTab model tab =
                 { filters =
                     Filters.create
                         |> Filters.withTag tag
+                , page = model.page
                 , token = Maybe.map .token model.user
                 , onResponse = GotArticles
                 }
@@ -105,19 +117,20 @@ fetchArticlesForTab model tab =
 
 
 type Msg
-    = GotArticles (Data { articles : List Article, count : Int })
+    = GotArticles (Data Api.Article.Listing)
     | GotTags (Data (List Tag))
     | SelectedTab Tab
     | ClickedFavorite User Article
     | ClickedUnfavorite User Article
+    | ClickedPage Int
     | UpdatedArticle (Data Article)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        GotArticles data ->
-            ( { model | articles = Api.Data.map .articles data }
+        GotArticles listing ->
+            ( { model | listing = listing }
             , Cmd.none
             )
 
@@ -127,12 +140,17 @@ update msg model =
             )
 
         SelectedTab tab ->
-            ( { model
-                | activeTab = tab
-                , articles = Api.Data.Loading
-                , page = 1
-              }
-            , fetchArticlesForTab model tab
+            let
+                newModel : Model
+                newModel =
+                    { model
+                        | activeTab = tab
+                        , listing = Api.Data.Loading
+                        , page = 1
+                    }
+            in
+            ( newModel
+            , fetchArticlesForTab newModel
             )
 
         ClickedFavorite user article ->
@@ -153,20 +171,25 @@ update msg model =
                 }
             )
 
-        UpdatedArticle (Api.Data.Success article) ->
+        ClickedPage page_ ->
             let
-                updateArticle : List Article -> List Article
-                updateArticle =
-                    List.map
-                        (\a ->
-                            if a.slug == article.slug then
-                                article
-
-                            else
-                                a
-                        )
+                newModel : Model
+                newModel =
+                    { model
+                        | listing = Api.Data.Loading
+                        , page = page_
+                    }
             in
-            ( { model | articles = Api.Data.map updateArticle model.articles }
+            ( newModel
+            , fetchArticlesForTab newModel
+            )
+
+        UpdatedArticle (Api.Data.Success article) ->
+            ( { model
+                | listing =
+                    Api.Data.map (Api.Article.updateArticle article)
+                        model.listing
+              }
             , Cmd.none
             )
 
@@ -210,9 +233,10 @@ view model =
                         (viewTabs model
                             :: Components.ArticleList.view
                                 { user = model.user
-                                , articles = model.articles
+                                , articleListing = model.listing
                                 , onFavorite = ClickedFavorite
                                 , onUnfavorite = ClickedUnfavorite
+                                , onPageClick = ClickedPage
                                 }
                         )
                     , div [ class "col-md-3" ] [ viewTags model.tags ]

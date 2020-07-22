@@ -43,8 +43,9 @@ type alias Model =
     { username : String
     , user : Maybe User
     , profile : Data Profile
-    , articles : Data (List Article)
+    , listing : Data Api.Article.Listing
     , selectedTab : Tab
+    , page : Int
     }
 
 
@@ -63,8 +64,9 @@ init shared { params } =
     ( { username = params.username
       , user = shared.user
       , profile = Api.Data.Loading
-      , articles = Api.Data.Loading
+      , listing = Api.Data.Loading
       , selectedTab = MyArticles
+      , page = 1
       }
     , Cmd.batch
         [ Api.Profile.get
@@ -72,26 +74,26 @@ init shared { params } =
             , username = params.username
             , onResponse = GotProfile
             }
-        , fetchArticlesBy token params.username
+        , fetchArticlesBy token params.username 1
         ]
     )
 
 
-fetchArticlesBy : Maybe Token -> String -> Cmd Msg
-fetchArticlesBy token username =
+fetchArticlesBy : Maybe Token -> String -> Int -> Cmd Msg
+fetchArticlesBy token username page_ =
     Api.Article.list
         { token = token
-        , filters =
-            Filters.create
-                |> Filters.byAuthor username
+        , page = page_
+        , filters = Filters.create |> Filters.byAuthor username
         , onResponse = GotArticles
         }
 
 
-fetchArticlesFavoritedBy : Maybe Token -> String -> Cmd Msg
-fetchArticlesFavoritedBy token username =
+fetchArticlesFavoritedBy : Maybe Token -> String -> Int -> Cmd Msg
+fetchArticlesFavoritedBy token username page_ =
     Api.Article.list
         { token = token
+        , page = page_
         , filters =
             Filters.create |> Filters.favoritedBy username
         , onResponse = GotArticles
@@ -104,13 +106,14 @@ fetchArticlesFavoritedBy token username =
 
 type Msg
     = GotProfile (Data Profile)
-    | GotArticles (Data { articles : List Article, count : Int })
+    | GotArticles (Data Api.Article.Listing)
     | Clicked Tab
     | ClickedFavorite User Article
     | ClickedUnfavorite User Article
     | UpdatedArticle (Data Article)
     | ClickedFollow User Profile
     | ClickedUnfollow User Profile
+    | ClickedPage Int
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -139,25 +142,27 @@ update msg model =
                 }
             )
 
-        GotArticles articles ->
-            ( { model | articles = Api.Data.map .articles articles }
+        GotArticles listing ->
+            ( { model | listing = listing }
             , Cmd.none
             )
 
         Clicked MyArticles ->
             ( { model
                 | selectedTab = MyArticles
-                , articles = Api.Data.Loading
+                , listing = Api.Data.Loading
+                , page = 1
               }
-            , fetchArticlesBy (Maybe.map .token model.user) model.username
+            , fetchArticlesBy (Maybe.map .token model.user) model.username 1
             )
 
         Clicked FavoritedArticles ->
             ( { model
                 | selectedTab = FavoritedArticles
-                , articles = Api.Data.Loading
+                , listing = Api.Data.Loading
+                , page = 1
               }
-            , fetchArticlesFavoritedBy (Maybe.map .token model.user) model.username
+            , fetchArticlesFavoritedBy (Maybe.map .token model.user) model.username 1
             )
 
         ClickedFavorite user article ->
@@ -178,20 +183,33 @@ update msg model =
                 }
             )
 
-        UpdatedArticle (Api.Data.Success article) ->
+        ClickedPage page_ ->
             let
-                updateArticle : List Article -> List Article
-                updateArticle =
-                    List.map
-                        (\a ->
-                            if a.slug == article.slug then
-                                article
+                fetch : Maybe Token -> String -> Int -> Cmd Msg
+                fetch =
+                    case model.selectedTab of
+                        MyArticles ->
+                            fetchArticlesBy
 
-                            else
-                                a
-                        )
+                        FavoritedArticles ->
+                            fetchArticlesFavoritedBy
             in
-            ( { model | articles = Api.Data.map updateArticle model.articles }
+            ( { model
+                | listing = Api.Data.Loading
+                , page = page_
+              }
+            , fetch
+                (model.user |> Maybe.map .token)
+                model.username
+                page_
+            )
+
+        UpdatedArticle (Api.Data.Success article) ->
+            ( { model
+                | listing =
+                    Api.Data.map (Api.Article.updateArticle article)
+                        model.listing
+              }
             , Cmd.none
             )
 
@@ -311,9 +329,10 @@ viewProfile profile model =
                     (viewTabRow
                         :: Components.ArticleList.view
                             { user = model.user
-                            , articles = model.articles
+                            , articleListing = model.listing
                             , onFavorite = ClickedFavorite
                             , onUnfavorite = ClickedUnfavorite
+                            , onPageClick = ClickedPage
                             }
                     )
                 ]

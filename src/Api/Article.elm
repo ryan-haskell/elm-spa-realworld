@@ -1,6 +1,6 @@
 module Api.Article exposing
-    ( Article
-    , decoder
+    ( Article, decoder
+    , Listing, updateArticle
     , list, feed
     , get, create, update, delete
     , favorite, unfavorite
@@ -8,8 +8,8 @@ module Api.Article exposing
 
 {-|
 
-@docs Article
-@docs decoder
+@docs Article, decoder
+@docs Listing, updateArticle
 @docs list, feed
 @docs get, create, update, delete
 @docs favorite, unfavorite
@@ -57,29 +57,60 @@ decoder =
         |> withField "author" Api.Profile.decoder
 
 
+type alias Listing =
+    { articles : List Article
+    , page : Int
+    , totalPages : Int
+    }
+
+
+updateArticle : Article -> Listing -> Listing
+updateArticle article listing =
+    let
+        articles : List Article
+        articles =
+            List.map
+                (\a ->
+                    if a.slug == article.slug then
+                        article
+
+                    else
+                        a
+                )
+                listing.articles
+    in
+    { listing | articles = articles }
+
+
 
 -- ENDPOINTS
+
+
+itemsPerPage : Int
+itemsPerPage =
+    25
 
 
 list :
     { token : Maybe Token
     , filters : Filters
-    , onResponse : Data { articles : List Article, count : Int } -> msg
+    , page : Int
+    , onResponse : Data Listing -> msg
     }
     -> Cmd msg
 list options =
     Api.Token.get options.token
-        { url = "https://conduit.productionready.io/api/articles/" ++ Filters.toQueryString options.filters
+        { url = "https://conduit.productionready.io/api/articles/" ++ Filters.toQueryString options.page options.filters
         , expect =
             Api.Data.expectJson options.onResponse
-                paginatedDecoder
+                (paginatedDecoder options.page)
         }
 
 
 feed :
     { token : Token
     , page : Int
-    , onResponse : Data { articles : List Article, count : Int } -> msg
+    , onResponse : Data Listing -> msg
     }
     -> Cmd msg
 feed options =
@@ -87,7 +118,7 @@ feed options =
         { url = "https://conduit.productionready.io/api/articles/feed" ++ Filters.pageQueryParameters options.page
         , expect =
             Api.Data.expectJson options.onResponse
-                paginatedDecoder
+                (paginatedDecoder options.page)
         }
 
 
@@ -227,12 +258,14 @@ unfavorite options =
 -- INTERNALS
 
 
-paginatedDecoder : Json.Decoder { articles : List Article, count : Int }
-paginatedDecoder =
+paginatedDecoder : Int -> Json.Decoder Listing
+paginatedDecoder page =
     let
+        multipleArticles : List Article -> Int -> Listing
         multipleArticles articles count =
             { articles = articles
-            , count = count
+            , page = page
+            , totalPages = count // itemsPerPage
             }
     in
     Json.map2 multipleArticles
