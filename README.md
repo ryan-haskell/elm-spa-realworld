@@ -4,7 +4,7 @@
 
 ![elm-test](https://github.com/ryannhg/elm-spa-realworld/workflows/elm-test/badge.svg?branch=master)
 
-### [Demo](https://elm-spa-realworld.netlify.app/)&nbsp;&nbsp;&nbsp;&nbsp;[RealWorld](https://github.com/gothinkster/realworld)
+### [Demo](https://realworld.elm-spa.dev/)&nbsp;&nbsp;&nbsp;&nbsp;[RealWorld](https://github.com/gothinkster/realworld)
 
 
 This codebase was created to demonstrate a fully fledged fullstack application built with **elm-spa** including CRUD operations, authentication, routing, pagination, and more.
