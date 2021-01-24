@@ -17,8 +17,8 @@ import View exposing (View)
 page : Shared.Model -> Request Params -> Page Model Msg
 page shared req =
     Page.shared
-        { init = init shared req
-        , update = update
+        { init = init shared
+        , update = update req
         , subscriptions = subscriptions
         , view = view
         }
@@ -34,15 +34,14 @@ type alias Params =
 
 type alias Model =
     { user : Data User
-    , key : Key
     , username : String
     , email : String
     , password : String
     }
 
 
-init : Shared.Model -> Request Params -> ( Model, Cmd Msg, List Shared.Msg )
-init shared { key } =
+init : Shared.Model -> ( Model, Cmd Msg, List Shared.Msg )
+init shared =
     ( Model
         (case shared.user of
             Just user ->
@@ -51,7 +50,6 @@ init shared { key } =
             Nothing ->
                 Api.Data.NotAsked
         )
-        key
         ""
         ""
         ""
@@ -76,8 +74,8 @@ type Field
     | Password
 
 
-update : Msg -> Model -> ( Model, Cmd Msg, List Shared.Msg )
-update msg model =
+update : Request Params -> Msg -> Model -> ( Model, Cmd Msg, List Shared.Msg )
+update req msg model =
     case msg of
         Updated Username username ->
             ( { model | username = username }
@@ -111,36 +109,18 @@ update msg model =
             )
 
         GotUser user ->
-            ( { model | user = user }
-            , case Api.Data.toMaybe user of
+            case Api.Data.toMaybe user of
                 Just user_ ->
-                    Cmd.batch
-                        [ Ports.saveUser user_
-                        , Utils.Route.navigate model.key Route.Top
-                        ]
+                    ( { model | user = user }
+                    , Utils.Route.navigate req.key Route.Top
+                    , [ Shared.SignedInUser user_ ]
+                    )
 
                 Nothing ->
-                    Cmd.none
-            , []
-            )
-
-
-save : Model -> Shared.Model -> Shared.Model
-save model shared =
-    { shared
-        | user =
-            case Api.Data.toMaybe model.user of
-                Just user ->
-                    Just user
-
-                Nothing ->
-                    shared.user
-    }
-
-
-load : Shared.Model -> Model -> ( Model, Cmd Msg )
-load _ model =
-    ( model, Cmd.none )
+                    ( { model | user = user }
+                    , Cmd.none
+                    , []
+                    )
 
 
 subscriptions : Model -> Sub Msg
