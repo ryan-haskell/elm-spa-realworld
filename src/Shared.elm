@@ -31,21 +31,19 @@ type alias Flags =
 
 
 type alias Model =
-    { url : Url
-    , key : Key
-    , user : Maybe User
+    { user : Maybe User
     }
 
 
 init : Request () -> Flags -> ( Model, Cmd Msg )
-init { url, key } json =
+init _ json =
     let
         user =
             json
                 |> Json.decodeValue (Json.field "user" Api.User.decoder)
                 |> Result.toMaybe
     in
-    ( Model url key user
+    ( Model user
     , Cmd.none
     )
 
@@ -77,10 +75,11 @@ subscriptions _ _ =
 
 
 view :
-    { page : View msg, toMsg : Msg -> msg }
+    Request ()
+    -> { page : View msg, toMsg : Msg -> msg }
     -> Model
     -> View msg
-view { page, toMsg } model =
+view req { page, toMsg } model =
     { title =
         if String.isEmpty page.title then
             "Conduit"
@@ -91,7 +90,7 @@ view { page, toMsg } model =
         [ div [ class "layout" ]
             [ Components.Navbar.view
                 { user = model.user
-                , currentRoute = Utils.Route.fromUrl model.url
+                , currentRoute = Utils.Route.fromUrl req.url
                 , onSignOut = toMsg ClickedSignOut
                 }
             , div [ class "page" ] page.body

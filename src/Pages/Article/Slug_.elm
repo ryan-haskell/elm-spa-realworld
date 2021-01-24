@@ -25,7 +25,7 @@ page : Shared.Model -> Request Params -> Page Model Msg
 page shared req =
     Page.element
         { init = init shared req
-        , update = update
+        , update = update req
         , subscriptions = subscriptions
         , view = view
         }
@@ -41,8 +41,7 @@ type alias Params =
 
 
 type alias Model =
-    { key : Key
-    , article : Data Article
+    { article : Data Article
     , comments : Data (List Comment)
     , user : Maybe User
     , commentText : String
@@ -51,8 +50,7 @@ type alias Model =
 
 init : Shared.Model -> Request Params -> ( Model, Cmd Msg )
 init shared { params } =
-    ( { key = shared.key
-      , article = Api.Data.Loading
+    ( { article = Api.Data.Loading
       , comments = Api.Data.Loading
       , user = shared.user
       , commentText = ""
@@ -93,8 +91,8 @@ type Msg
     | UpdatedCommentText String
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update : Request Params -> Msg -> Model -> ( Model, Cmd Msg )
+update req msg model =
     case msg of
         GotArticle article ->
             ( { model | article = article }
@@ -130,7 +128,7 @@ update msg model =
 
         DeletedArticle _ ->
             ( model
-            , Utils.Route.navigate model.key Route.Top
+            , Utils.Route.navigate req.key Route.Top
             )
 
         GotAuthor profile ->

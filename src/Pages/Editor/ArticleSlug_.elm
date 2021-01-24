@@ -19,7 +19,7 @@ page : Shared.Model -> Request Params -> Page Model Msg
 page shared req =
     Page.element
         { init = init shared req
-        , update = update
+        , update = update req
         , subscriptions = subscriptions
         , view = Utils.Auth.protected view
         }
@@ -34,8 +34,7 @@ type alias Params =
 
 
 type alias Model =
-    { key : Key
-    , user : Maybe User
+    { user : Maybe User
     , slug : String
     , form : Maybe Form
     , article : Data Article
@@ -44,8 +43,7 @@ type alias Model =
 
 init : Shared.Model -> Request Params -> ( Model, Cmd Msg )
 init shared { params } =
-    ( { key = shared.key
-      , user = shared.user
+    ( { user = shared.user
       , slug = params.articleSlug
       , form = Nothing
       , article = Api.Data.Loading
@@ -69,8 +67,8 @@ type Msg
     | LoadedInitialArticle (Data Article)
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update : Request Params -> Msg -> Model -> ( Model, Cmd Msg )
+update req msg model =
     case msg of
         LoadedInitialArticle article ->
             case article of
@@ -122,7 +120,7 @@ update msg model =
             ( { model | article = article }
             , case article of
                 Api.Data.Success newArticle ->
-                    Utils.Route.navigate model.key
+                    Utils.Route.navigate req.key
                         (Route.Article__Slug_ { slug = newArticle.slug })
 
                 _ ->

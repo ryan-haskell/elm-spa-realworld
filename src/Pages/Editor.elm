@@ -19,8 +19,8 @@ import View exposing (View)
 page : Shared.Model -> Request Params -> Page Model Msg
 page shared req =
     Page.element
-        { init = init shared req
-        , update = update
+        { init = init shared
+        , update = update req
         , subscriptions = subscriptions
         , view = Utils.Auth.protected view
         }
@@ -35,17 +35,15 @@ type alias Params =
 
 
 type alias Model =
-    { key : Key
-    , user : Maybe User
+    { user : Maybe User
     , form : Form
     , article : Data Article
     }
 
 
-init : Shared.Model -> Request Params -> ( Model, Cmd Msg )
-init shared _ =
-    ( { key = shared.key
-      , user = shared.user
+init : Shared.Model -> ( Model, Cmd Msg )
+init shared =
+    ( { user = shared.user
       , form =
             { title = ""
             , description = ""
@@ -68,8 +66,8 @@ type Msg
     | GotArticle (Data Article)
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update : Request Params -> Msg -> Model -> ( Model, Cmd Msg )
+update req msg model =
     case msg of
         Updated field value ->
             ( { model
@@ -103,7 +101,7 @@ update msg model =
             ( { model | article = article }
             , case article of
                 Api.Data.Success newArticle ->
-                    Utils.Route.navigate model.key
+                    Utils.Route.navigate req.key
                         (Route.Article__Slug_ { slug = newArticle.slug })
 
                 _ ->
