@@ -21,7 +21,7 @@ page shared req =
         { init = init shared req
         , update = update req
         , subscriptions = subscriptions
-        , view = Utils.Auth.protected view
+        , view = Utils.Auth.protected shared view
         }
 
 
@@ -34,8 +34,7 @@ type alias Params =
 
 
 type alias Model =
-    { user : Maybe User
-    , slug : String
+    { slug : String
     , form : Maybe Form
     , article : Data Article
     }
@@ -43,8 +42,7 @@ type alias Model =
 
 init : Shared.Model -> Request Params -> ( Model, Cmd Msg )
 init shared { params } =
-    ( { user = shared.user
-      , slug = params.articleSlug
+    ( { slug = params.articleSlug
       , form = Nothing
       , article = Api.Data.Loading
       }

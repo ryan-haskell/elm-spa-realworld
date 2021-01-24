@@ -22,7 +22,7 @@ page shared req =
         { init = init shared
         , update = update req
         , subscriptions = subscriptions
-        , view = Utils.Auth.protected view
+        , view = Utils.Auth.protected shared view
         }
 
 
@@ -35,16 +35,14 @@ type alias Params =
 
 
 type alias Model =
-    { user : Maybe User
-    , form : Form
+    { form : Form
     , article : Data Article
     }
 
 
 init : Shared.Model -> ( Model, Cmd Msg )
 init shared =
-    ( { user = shared.user
-      , form =
+    ( { form =
             { title = ""
             , description = ""
             , body = ""

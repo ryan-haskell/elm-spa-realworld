@@ -10,7 +10,7 @@ import Page exposing (Page)
 import Ports
 import Request exposing (Request)
 import Shared
-import Utils.Auth exposing (protected)
+import Utils.Auth
 import Utils.Maybe
 import View exposing (View)
 
@@ -21,7 +21,7 @@ page shared _ =
         { init = init shared
         , update = update
         , subscriptions = subscriptions
-        , view = protected view
+        , view = Utils.Auth.protected shared view
         }
 
 
@@ -34,8 +34,7 @@ type alias Params =
 
 
 type alias Model =
-    { user : Maybe User
-    , image : String
+    { image : String
     , username : String
     , bio : String
     , email : String
@@ -49,8 +48,7 @@ init : Shared.Model -> ( Model, Cmd Msg, List Shared.Msg )
 init shared =
     ( case shared.user of
         Just user ->
-            { user = shared.user
-            , image = user.image
+            { image = user.image
             , username = user.username
             , bio = user.bio |> Maybe.withDefault ""
             , email = user.email
@@ -60,8 +58,7 @@ init shared =
             }
 
         Nothing ->
-            { user = shared.user
-            , image = ""
+            { image = ""
             , username = ""
             , bio = ""
             , email = ""
