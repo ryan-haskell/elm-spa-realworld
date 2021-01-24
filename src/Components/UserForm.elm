@@ -2,11 +2,11 @@ module Components.UserForm exposing (Field, view)
 
 import Api.Data exposing (Data)
 import Api.User exposing (User)
+import Components.ErrorList
+import Gen.Route as Route exposing (Route)
 import Html exposing (..)
 import Html.Attributes exposing (class, href, placeholder, type_, value)
 import Html.Events as Events
-import Spa.Generated.Route as Route exposing (Route)
-import Components.ErrorList
 
 
 type alias Field msg =
@@ -32,7 +32,7 @@ view options =
                 [ div [ class "col-md-6 offset-md-3 col-xs-12" ]
                     [ h1 [ class "text-xs-center" ] [ text options.label ]
                     , p [ class "text-xs-center" ]
-                        [ a [ href (Route.toString options.alternateLink.route) ]
+                        [ a [ href (Route.toHref options.alternateLink.route) ]
                             [ text options.alternateLink.label ]
                         ]
                     , case options.user of
