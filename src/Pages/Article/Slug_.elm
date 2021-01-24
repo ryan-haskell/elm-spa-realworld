@@ -27,7 +27,7 @@ page shared req =
         { init = init shared req
         , update = update req
         , subscriptions = subscriptions
-        , view = view
+        , view = view shared
         }
 
 
@@ -43,7 +43,6 @@ type alias Params =
 type alias Model =
     { article : Data Article
     , comments : Data (List Comment)
-    , user : Maybe User
     , commentText : String
     }
 
@@ -52,7 +51,6 @@ init : Shared.Model -> Request Params -> ( Model, Cmd Msg )
 init shared { params } =
     ( { article = Api.Data.Loading
       , comments = Api.Data.Loading
-      , user = shared.user
       , commentText = ""
       }
     , Cmd.batch
@@ -228,12 +226,12 @@ subscriptions _ =
 -- VIEW
 
 
-view : Model -> View Msg
-view model =
+view : Shared.Model -> Model -> View Msg
+view shared model =
     case model.article of
         Api.Data.Success article ->
             { title = article.title
-            , body = [ viewArticle model article ]
+            , body = [ viewArticle shared model article ]
             }
 
         _ ->
@@ -242,13 +240,13 @@ view model =
             }
 
 
-viewArticle : Model -> Article -> Html Msg
-viewArticle model article =
+viewArticle : Shared.Model -> Model -> Article -> Html Msg
+viewArticle shared model article =
     div [ class "article-page" ]
         [ div [ class "banner" ]
             [ div [ class "container" ]
                 [ h1 [] [ text article.title ]
-                , viewArticleMeta model article
+                , viewArticleMeta shared model article
                 ]
             ]
         , div [ class "container page" ]
@@ -266,14 +264,14 @@ viewArticle model article =
                         )
                 ]
             , hr [] []
-            , div [ class "article-actions" ] [ viewArticleMeta model article ]
-            , viewCommentSection model article
+            , div [ class "article-actions" ] [ viewArticleMeta shared model article ]
+            , viewCommentSection shared model article
             ]
         ]
 
 
-viewArticleMeta : Model -> Article -> Html Msg
-viewArticleMeta model article =
+viewArticleMeta : Shared.Model -> Model -> Article -> Html Msg
+viewArticleMeta shared model article =
     div [ class "article-meta" ] <|
         List.concat
             [ [ a [ href ("/profile/" ++ article.author.username) ]
@@ -284,7 +282,7 @@ viewArticleMeta model article =
                     , span [ class "date" ] [ text (Utils.Time.formatDate article.createdAt) ]
                     ]
               ]
-            , case model.user of
+            , case shared.user of
                 Just user ->
                     viewControls article user
 
@@ -345,12 +343,12 @@ viewControls article user =
         ]
 
 
-viewCommentSection : Model -> Article -> Html Msg
-viewCommentSection model article =
+viewCommentSection : Shared.Model -> Model -> Article -> Html Msg
+viewCommentSection shared model article =
     div [ class "row" ]
         [ div [ class "col-xs-12 col-md-8 offset-md-2" ] <|
             List.concat
-                [ case model.user of
+                [ case shared.user of
                     Just user ->
                         [ viewCommentForm model user article ]
 
@@ -358,7 +356,7 @@ viewCommentSection model article =
                         []
                 , case model.comments of
                     Api.Data.Success comments ->
-                        List.map (viewComment model.user article) comments
+                        List.map (viewComment shared.user article) comments
 
                     _ ->
                         []

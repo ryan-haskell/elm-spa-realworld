@@ -23,9 +23,9 @@ page : Shared.Model -> Request Params -> Page Model Msg
 page shared req =
     Page.element
         { init = init shared req
-        , update = update
+        , update = update shared
         , subscriptions = subscriptions
-        , view = view
+        , view = view shared
         }
 
 
@@ -39,7 +39,6 @@ type alias Params =
 
 type alias Model =
     { username : String
-    , user : Maybe User
     , profile : Data Profile
     , listing : Data Api.Article.Listing
     , selectedTab : Tab
@@ -60,7 +59,6 @@ init shared { params } =
             Maybe.map .token shared.user
     in
     ( { username = params.username
-      , user = shared.user
       , profile = Api.Data.Loading
       , listing = Api.Data.Loading
       , selectedTab = MyArticles
@@ -114,8 +112,8 @@ type Msg
     | ClickedPage Int
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update : Shared.Model -> Msg -> Model -> ( Model, Cmd Msg )
+update shared msg model =
     case msg of
         GotProfile profile ->
             ( { model | profile = profile }
@@ -151,7 +149,7 @@ update msg model =
                 , listing = Api.Data.Loading
                 , page = 1
               }
-            , fetchArticlesBy (Maybe.map .token model.user) model.username 1
+            , fetchArticlesBy (Maybe.map .token shared.user) model.username 1
             )
 
         Clicked FavoritedArticles ->
@@ -160,7 +158,7 @@ update msg model =
                 , listing = Api.Data.Loading
                 , page = 1
               }
-            , fetchArticlesFavoritedBy (Maybe.map .token model.user) model.username 1
+            , fetchArticlesFavoritedBy (Maybe.map .token shared.user) model.username 1
             )
 
         ClickedFavorite user article ->
@@ -197,7 +195,7 @@ update msg model =
                 , page = page_
               }
             , fetch
-                (model.user |> Maybe.map .token)
+                (shared.user |> Maybe.map .token)
                 model.username
                 page_
             )
@@ -224,13 +222,13 @@ subscriptions _ =
 -- VIEW
 
 
-view : Model -> View Msg
-view model =
+view : Shared.Model -> Model -> View Msg
+view shared model =
     { title = "Profile"
     , body =
         case model.profile of
             Api.Data.Success profile ->
-                [ viewProfile profile model ]
+                [ viewProfile shared profile model ]
 
             Api.Data.Failure _ ->
                 [ Components.NotFound.view ]
@@ -240,12 +238,12 @@ view model =
     }
 
 
-viewProfile : Profile -> Model -> Html Msg
-viewProfile profile model =
+viewProfile : Shared.Model -> Profile -> Model -> Html Msg
+viewProfile shared profile model =
     let
         isViewingOwnProfile : Bool
         isViewingOwnProfile =
-            Maybe.map .username model.user == Just profile.username
+            Maybe.map .username shared.user == Just profile.username
 
         viewUserInfo : Html Msg
         viewUserInfo =
@@ -261,7 +259,7 @@ viewProfile profile model =
                                 text ""
 
                               else
-                                Utils.Maybe.view model.user <|
+                                Utils.Maybe.view shared.user <|
                                     \user ->
                                         if profile.following then
                                             IconButton.view
@@ -316,7 +314,7 @@ viewProfile profile model =
                 [ div [ class "col-xs-12 col-md-10 offset-md-1" ]
                     (viewTabRow
                         :: Components.ArticleList.view
-                            { user = model.user
+                            { user = shared.user
                             , articleListing = model.listing
                             , onFavorite = ClickedFavorite
                             , onUnfavorite = ClickedUnfavorite
