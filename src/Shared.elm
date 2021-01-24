@@ -1,7 +1,7 @@
 module Shared exposing
     ( Flags
     , Model
-    , Msg
+    , Msg(..)
     , init
     , subscriptions
     , update
@@ -54,11 +54,17 @@ init _ json =
 
 type Msg
     = ClickedSignOut
+    | SignedInUser User
 
 
 update : Request () -> Msg -> Model -> ( Model, Cmd Msg )
 update _ msg model =
     case msg of
+        SignedInUser user ->
+            ( { model | user = Just user }
+            , Ports.saveUser user
+            )
+
         ClickedSignOut ->
             ( { model | user = Nothing }
             , Ports.clearUser
