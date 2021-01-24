@@ -17,9 +17,9 @@ import Html.Attributes exposing (class)
 import Json.Decode as Json
 import Ports
 import Request exposing (Request)
-import Spa.Document exposing (Document)
 import Url exposing (Url)
 import Utils.Route
+import View exposing (View)
 
 
 
@@ -77,9 +77,9 @@ subscriptions _ _ =
 
 
 view :
-    { page : Document msg, toMsg : Msg -> msg }
+    { page : View msg, toMsg : Msg -> msg }
     -> Model
-    -> Document msg
+    -> View msg
 view { page, toMsg } model =
     { title =
         if String.isEmpty page.title then

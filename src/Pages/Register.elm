@@ -10,9 +10,8 @@ import Page exposing (Page)
 import Ports
 import Request exposing (Request)
 import Shared
-import Spa.Document exposing (Document)
-import Spa.Url exposing (Url)
 import Utils.Route
+import View exposing (View)
 
 
 page : Shared.Model -> Request Params -> Page Model Msg
@@ -147,7 +146,7 @@ subscriptions _ =
 -- VIEW
 
 
-view : Model -> Document Msg
+view : Model -> View Msg
 view model =
     { title = "Sign up"
     , body =

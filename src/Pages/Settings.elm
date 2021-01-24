@@ -10,10 +10,9 @@ import Page exposing (Page)
 import Ports
 import Request exposing (Request)
 import Shared
-import Spa.Document exposing (Document)
-import Spa.Url exposing (Url)
 import Utils.Auth exposing (protected)
 import Utils.Maybe
+import View exposing (View)
 
 
 page : Shared.Model -> Request Params -> Page Model Msg
@@ -155,7 +154,7 @@ subscriptions _ =
 -- VIEW
 
 
-view : User -> Model -> Document Msg
+view : User -> Model -> View Msg
 view user model =
     { title = "Settings"
     , body =

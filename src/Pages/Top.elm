@@ -12,9 +12,8 @@ import Html.Events as Events
 import Page exposing (Page)
 import Request exposing (Request)
 import Shared
-import Spa.Document exposing (Document)
-import Spa.Url exposing (Url)
 import Utils.Maybe
+import View exposing (View)
 
 
 page : Shared.Model -> Request Params -> Page Model Msg
@@ -205,7 +204,7 @@ subscriptions _ =
 -- VIEW
 
 
-view : Model -> Document Msg
+view : Model -> View Msg
 view model =
     { title = ""
     , body =

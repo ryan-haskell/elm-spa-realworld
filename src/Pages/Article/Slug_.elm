@@ -15,11 +15,10 @@ import Markdown
 import Page exposing (Page)
 import Request exposing (Request)
 import Shared
-import Spa.Document exposing (Document)
-import Spa.Url exposing (Url)
 import Utils.Maybe
 import Utils.Route
 import Utils.Time
+import View exposing (View)
 
 
 page : Shared.Model -> Request Params -> Page Model Msg
@@ -231,7 +230,7 @@ subscriptions _ =
 -- VIEW
 
 
-view : Model -> Document Msg
+view : Model -> View Msg
 view model =
     case model.article of
         Api.Data.Success article ->

@@ -3,13 +3,13 @@ module Utils.Auth exposing (protected)
 import Api.User exposing (User)
 import Html exposing (..)
 import Html.Attributes exposing (class, href)
-import Spa.Document exposing (Document)
+import View exposing (View)
 
 
 protected :
-    (User -> { model | user : Maybe User } -> Document msg)
+    (User -> { model | user : Maybe User } -> View msg)
     -> { model | user : Maybe User }
-    -> Document msg
+    -> View msg
 protected view model =
     case model.user of
         Just user ->
