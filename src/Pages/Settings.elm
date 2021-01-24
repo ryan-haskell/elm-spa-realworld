@@ -17,7 +17,7 @@ import View exposing (View)
 
 page : Shared.Model -> Request Params -> Page Model Msg
 page shared _ =
-    Page.element
+    Page.shared
         { init = init shared
         , update = update
         , subscriptions = subscriptions
@@ -45,7 +45,7 @@ type alias Model =
     }
 
 
-init : Shared.Model -> ( Model, Cmd Msg )
+init : Shared.Model -> ( Model, Cmd Msg, List Shared.Msg )
 init shared =
     ( case shared.user of
         Just user ->
@@ -70,6 +70,7 @@ init shared =
             , errors = []
             }
     , Cmd.none
+    , []
     )
 
 
@@ -91,23 +92,23 @@ type Field
     | Password
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> ( Model, Cmd Msg, List Shared.Msg )
 update msg model =
     case msg of
         Updated Image value ->
-            ( { model | image = value }, Cmd.none )
+            ( { model | image = value }, Cmd.none, [] )
 
         Updated Username value ->
-            ( { model | username = value }, Cmd.none )
+            ( { model | username = value }, Cmd.none, [] )
 
         Updated Bio value ->
-            ( { model | bio = value }, Cmd.none )
+            ( { model | bio = value }, Cmd.none, [] )
 
         Updated Email value ->
-            ( { model | email = value }, Cmd.none )
+            ( { model | email = value }, Cmd.none, [] )
 
         Updated Password value ->
-            ( { model | password = Just value }, Cmd.none )
+            ( { model | password = Just value }, Cmd.none, [] )
 
         SubmittedForm user ->
             ( { model | message = Nothing, errors = [] }
@@ -116,6 +117,7 @@ update msg model =
                 , user = model
                 , onResponse = GotUser
                 }
+            , []
             )
 
         GotUser (Api.Data.Success user) ->
@@ -124,15 +126,17 @@ update msg model =
                 , user = Just user
               }
             , Ports.saveUser user
+            , []
             )
 
         GotUser (Api.Data.Failure reasons) ->
             ( { model | errors = reasons }
             , Cmd.none
+            , []
             )
 
         GotUser _ ->
-            ( model, Cmd.none )
+            ( model, Cmd.none, [] )
 
 
 save : Model -> Shared.Model -> Shared.Model

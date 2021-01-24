@@ -16,7 +16,7 @@ import View exposing (View)
 
 page : Shared.Model -> Request Params -> Page Model Msg
 page shared req =
-    Page.element
+    Page.shared
         { init = init shared req
         , update = update
         , subscriptions = subscriptions
@@ -40,7 +40,7 @@ type alias Model =
     }
 
 
-init : Shared.Model -> Request Params -> ( Model, Cmd Msg )
+init : Shared.Model -> Request Params -> ( Model, Cmd Msg, List Shared.Msg )
 init shared { key } =
     ( Model
         (case shared.user of
@@ -54,6 +54,7 @@ init shared { key } =
         ""
         ""
     , Cmd.none
+    , []
     )
 
 
@@ -72,17 +73,19 @@ type Field
     | Password
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> ( Model, Cmd Msg, List Shared.Msg )
 update msg model =
     case msg of
         Updated Email email ->
             ( { model | email = email }
             , Cmd.none
+            , []
             )
 
         Updated Password password ->
             ( { model | password = password }
             , Cmd.none
+            , []
             )
 
         AttemptedSignIn ->
@@ -94,6 +97,7 @@ update msg model =
                     }
                 , onResponse = GotUser
                 }
+            , []
             )
 
         GotUser user ->
@@ -107,6 +111,7 @@ update msg model =
 
                 Nothing ->
                     Cmd.none
+            , []
             )
 
 
