@@ -6,24 +6,23 @@ import Components.ErrorList
 import Html exposing (..)
 import Html.Attributes exposing (attribute, class, placeholder, type_, value)
 import Html.Events as Events
+import Page exposing (Page)
 import Ports
+import Request exposing (Request)
 import Shared
 import Spa.Document exposing (Document)
-import Spa.Page as Page exposing (Page)
 import Spa.Url exposing (Url)
 import Utils.Auth exposing (protected)
 import Utils.Maybe
 
 
-page : Page Params Model Msg
-page =
-    Page.application
-        { init = init
+page : Shared.Model -> Request Params -> Page Model Msg
+page shared _ =
+    Page.element
+        { init = init shared
         , update = update
         , subscriptions = subscriptions
         , view = protected view
-        , save = save
-        , load = load
         }
 
 
@@ -47,8 +46,8 @@ type alias Model =
     }
 
 
-init : Shared.Model -> Url Params -> ( Model, Cmd Msg )
-init shared _ =
+init : Shared.Model -> ( Model, Cmd Msg )
+init shared =
     ( case shared.user of
         Just user ->
             { user = shared.user

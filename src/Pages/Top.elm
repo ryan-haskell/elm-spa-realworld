@@ -9,22 +9,21 @@ import Components.ArticleList
 import Html exposing (..)
 import Html.Attributes exposing (class, classList)
 import Html.Events as Events
+import Page exposing (Page)
+import Request exposing (Request)
 import Shared
 import Spa.Document exposing (Document)
-import Spa.Page as Page exposing (Page)
 import Spa.Url exposing (Url)
 import Utils.Maybe
 
 
-page : Page Params Model Msg
-page =
-    Page.application
-        { init = init
+page : Shared.Model -> Request Params -> Page Model Msg
+page shared _ =
+    Page.element
+        { init = init shared
         , update = update
         , subscriptions = subscriptions
         , view = view
-        , save = save
-        , load = load
         }
 
 
@@ -51,8 +50,8 @@ type Tab
     | TagFilter Tag
 
 
-init : Shared.Model -> Url Params -> ( Model, Cmd Msg )
-init shared _ =
+init : Shared.Model -> ( Model, Cmd Msg )
+init shared =
     let
         activeTab : Tab
         activeTab =

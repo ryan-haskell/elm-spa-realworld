@@ -5,26 +5,25 @@ import Api.Data exposing (Data)
 import Api.User exposing (User)
 import Browser.Navigation exposing (Key)
 import Components.Editor exposing (Field, Form)
+import Gen.Route as Route
 import Html exposing (..)
 import Html.Events as Events
+import Page exposing (Page)
+import Request exposing (Request)
 import Shared
 import Spa.Document exposing (Document)
-import Spa.Generated.Route as Route
-import Spa.Page as Page exposing (Page)
 import Spa.Url exposing (Url)
 import Utils.Auth
 import Utils.Route
 
 
-page : Page Params Model Msg
-page =
-    Page.application
-        { init = init
+page : Shared.Model -> Request Params -> Page Model Msg
+page shared req =
+    Page.element
+        { init = init shared req
         , update = update
         , subscriptions = subscriptions
         , view = Utils.Auth.protected view
-        , save = save
-        , load = load
         }
 
 
@@ -44,7 +43,7 @@ type alias Model =
     }
 
 
-init : Shared.Model -> Url Params -> ( Model, Cmd Msg )
+init : Shared.Model -> Request Params -> ( Model, Cmd Msg )
 init shared _ =
     ( { key = shared.key
       , user = shared.user
@@ -106,7 +105,7 @@ update msg model =
             , case article of
                 Api.Data.Success newArticle ->
                     Utils.Route.navigate model.key
-                        (Route.Article__Slug_String { slug = newArticle.slug })
+                        (Route.Article__Slug_ { slug = newArticle.slug })
 
                 _ ->
                     Cmd.none

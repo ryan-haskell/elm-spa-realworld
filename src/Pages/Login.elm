@@ -4,25 +4,24 @@ import Api.Data exposing (Data)
 import Api.User exposing (User)
 import Browser.Navigation exposing (Key)
 import Components.UserForm
+import Gen.Route as Route
 import Html exposing (..)
+import Page exposing (Page)
 import Ports
+import Request exposing (Request)
 import Shared
 import Spa.Document exposing (Document)
-import Spa.Generated.Route as Route
-import Spa.Page as Page exposing (Page)
 import Spa.Url exposing (Url)
 import Utils.Route
 
 
-page : Page Params Model Msg
-page =
-    Page.application
-        { init = init
+page : Shared.Model -> Request Params -> Page Model Msg
+page shared req =
+    Page.element
+        { init = init shared req
         , update = update
         , subscriptions = subscriptions
         , view = view
-        , save = save
-        , load = load
         }
 
 
@@ -42,7 +41,7 @@ type alias Model =
     }
 
 
-init : Shared.Model -> Url Params -> ( Model, Cmd Msg )
+init : Shared.Model -> Request Params -> ( Model, Cmd Msg )
 init shared { key } =
     ( Model
         (case shared.user of
