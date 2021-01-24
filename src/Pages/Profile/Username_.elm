@@ -1,4 +1,4 @@
-module Pages.Profile.Username_String exposing (Model, Msg, Params, page)
+module Pages.Profile.Username_ exposing (Model, Msg, Params, page)
 
 import Api.Article exposing (Article)
 import Api.Article.Filters as Filters
@@ -12,22 +12,21 @@ import Components.NotFound
 import Html exposing (..)
 import Html.Attributes exposing (class, classList, src)
 import Html.Events as Events
+import Page exposing (Page)
+import Request exposing (Request)
 import Shared
 import Spa.Document exposing (Document)
-import Spa.Page as Page exposing (Page)
 import Spa.Url exposing (Url)
 import Utils.Maybe
 
 
-page : Page Params Model Msg
-page =
-    Page.application
-        { init = init
+page : Shared.Model -> Request Params -> Page Model Msg
+page shared req =
+    Page.element
+        { init = init shared req
         , update = update
         , subscriptions = subscriptions
         , view = view
-        , save = save
-        , load = load
         }
 
 
@@ -54,7 +53,7 @@ type Tab
     | FavoritedArticles
 
 
-init : Shared.Model -> Url Params -> ( Model, Cmd Msg )
+init : Shared.Model -> Request Params -> ( Model, Cmd Msg )
 init shared { params } =
     let
         token : Maybe Token

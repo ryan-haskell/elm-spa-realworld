@@ -1,4 +1,4 @@
-module Pages.Article.Slug_String exposing (Model, Msg, Params, page)
+module Pages.Article.Slug_ exposing (Model, Msg, Params, page)
 
 import Api.Article exposing (Article)
 import Api.Article.Comment exposing (Comment)
@@ -7,29 +7,28 @@ import Api.Profile exposing (Profile)
 import Api.User exposing (User)
 import Browser.Navigation exposing (Key)
 import Components.IconButton as IconButton
+import Gen.Route as Route
 import Html exposing (..)
 import Html.Attributes exposing (attribute, class, href, placeholder, src, value)
 import Html.Events as Events
 import Markdown
+import Page exposing (Page)
+import Request exposing (Request)
 import Shared
 import Spa.Document exposing (Document)
-import Spa.Generated.Route as Route
-import Spa.Page as Page exposing (Page)
 import Spa.Url exposing (Url)
 import Utils.Maybe
 import Utils.Route
 import Utils.Time
 
 
-page : Page Params Model Msg
-page =
-    Page.application
-        { init = init
+page : Shared.Model -> Request Params -> Page Model Msg
+page shared req =
+    Page.element
+        { init = init shared req
         , update = update
         , subscriptions = subscriptions
         , view = view
-        , save = save
-        , load = load
         }
 
 
@@ -51,7 +50,7 @@ type alias Model =
     }
 
 
-init : Shared.Model -> Url Params -> ( Model, Cmd Msg )
+init : Shared.Model -> Request Params -> ( Model, Cmd Msg )
 init shared { params } =
     ( { key = shared.key
       , article = Api.Data.Loading
@@ -221,16 +220,6 @@ update msg model =
             ( { model | comments = Api.Data.map removeComment model.comments }
             , Cmd.none
             )
-
-
-save : Model -> Shared.Model -> Shared.Model
-save _ shared =
-    shared
-
-
-load : Shared.Model -> Model -> ( Model, Cmd Msg )
-load _ model =
-    ( model, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
