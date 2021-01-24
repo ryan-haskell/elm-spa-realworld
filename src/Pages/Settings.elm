@@ -121,12 +121,9 @@ update msg model =
             )
 
         GotUser (Api.Data.Success user) ->
-            ( { model
-                | message = Just "User updated!"
-                , user = Just user
-              }
+            ( { model | message = Just "User updated!" }
             , Ports.saveUser user
-            , []
+            , [ Shared.SignedInUser user ]
             )
 
         GotUser (Api.Data.Failure reasons) ->
@@ -137,16 +134,6 @@ update msg model =
 
         GotUser _ ->
             ( model, Cmd.none, [] )
-
-
-save : Model -> Shared.Model -> Shared.Model
-save model shared =
-    { shared | user = model.user }
-
-
-load : Shared.Model -> Model -> ( Model, Cmd Msg )
-load _ model =
-    ( model, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
