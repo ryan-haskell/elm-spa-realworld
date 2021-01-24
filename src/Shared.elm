@@ -16,6 +16,7 @@ import Html exposing (..)
 import Html.Attributes exposing (class)
 import Json.Decode as Json
 import Ports
+import Request exposing (Request)
 import Spa.Document exposing (Document)
 import Url exposing (Url)
 import Utils.Route
@@ -36,8 +37,8 @@ type alias Model =
     }
 
 
-init : Flags -> Url -> Key -> ( Model, Cmd Msg )
-init json url key =
+init : Request () -> Flags -> ( Model, Cmd Msg )
+init { url, key } json =
     let
         user =
             json
@@ -57,8 +58,8 @@ type Msg
     = ClickedSignOut
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update : Request () -> Msg -> Model -> ( Model, Cmd Msg )
+update _ msg model =
     case msg of
         ClickedSignOut ->
             ( { model | user = Nothing }
@@ -66,8 +67,8 @@ update msg model =
             )
 
 
-subscriptions : Model -> Sub Msg
-subscriptions _ =
+subscriptions : Request () -> Model -> Sub Msg
+subscriptions _ _ =
     Sub.none
 
 
