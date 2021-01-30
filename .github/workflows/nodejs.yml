@@ -24,6 +24,6 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - run: npm install elm
+    - run: npm install elm elm-test elm-spa@beta
     - run: npx elm-spa build
     - run: npx elm-test
