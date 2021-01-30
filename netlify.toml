@@ -1,6 +1,6 @@
 [build]
   publish = "public"
-  command = "npm run build"
+  command = "npx elm-spa build"
 
 [[redirects]]
   from = "/api/*"
