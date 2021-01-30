@@ -24,9 +24,6 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - run: npm install elm elm-test elm-spa@beta
-    - run: pwd
-    - run: mkdir -p node_modules/elm-spa/node_modules/.bin
-    - run: cp node_modules/.bin/terser node_modules/elm-spa/node_modules/.bin/terser
-    - run: npx elm-spa build
+    - run: npm install elm elm-test
+    - run: mkdir -p .elm-spa/defaults .elm-spa/generated
     - run: npx elm-test
