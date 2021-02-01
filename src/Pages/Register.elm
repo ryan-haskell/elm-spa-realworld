@@ -112,7 +112,7 @@ update req msg model =
             case Api.Data.toMaybe user of
                 Just user_ ->
                     ( { model | user = user }
-                    , Utils.Route.navigate req.key Route.Top
+                    , Utils.Route.navigate req.key Route.Home_
                     , [ Shared.SignedInUser user_ ]
                     )
 

@@ -1,4 +1,4 @@
-module Pages.Top exposing (Model, Msg, Params, page)
+module Pages.Home_ exposing (Model, Msg, Params, page)
 
 import Api.Article exposing (Article)
 import Api.Article.Filters as Filters

@@ -126,7 +126,7 @@ update req msg model =
 
         DeletedArticle _ ->
             ( model
-            , Utils.Route.navigate req.key Route.Top
+            , Utils.Route.navigate req.key Route.Home_
             )
 
         GotAuthor profile ->

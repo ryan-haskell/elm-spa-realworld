@@ -16,13 +16,13 @@ view :
 view options =
     nav [ class "navbar navbar-light" ]
         [ div [ class "container" ]
-            [ a [ class "navbar-brand", href (Route.toHref Route.Top) ] [ text "conduit" ]
+            [ a [ class "navbar-brand", href (Route.toHref Route.Home_) ] [ text "conduit" ]
             , ul [ class "nav navbar-nav pull-xs-right" ] <|
                 case options.user of
                     Just _ ->
                         List.concat
                             [ List.map (viewLink options.currentRoute) <|
-                                [ ( "Home", Route.Top )
+                                [ ( "Home", Route.Home_ )
                                 , ( "New Article", Route.Editor )
                                 , ( "Settings", Route.Settings )
                                 ]
@@ -38,7 +38,7 @@ view options =
 
                     Nothing ->
                         List.map (viewLink options.currentRoute) <|
-                            [ ( "Home", Route.Top )
+                            [ ( "Home", Route.Home_ )
                             , ( "Sign in", Route.Login )
                             , ( "Sign up", Route.Register )
                             ]
