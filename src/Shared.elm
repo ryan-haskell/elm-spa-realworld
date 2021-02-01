@@ -9,7 +9,6 @@ module Shared exposing
     )
 
 import Api.User exposing (User)
-import Browser.Navigation exposing (Key)
 import Components.Footer
 import Components.Navbar
 import Html exposing (..)
@@ -17,7 +16,6 @@ import Html.Attributes exposing (class)
 import Json.Decode as Json
 import Ports
 import Request exposing (Request)
-import Url exposing (Url)
 import Utils.Route
 import View exposing (View)
 

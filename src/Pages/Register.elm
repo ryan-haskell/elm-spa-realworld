@@ -2,12 +2,10 @@ module Pages.Register exposing (Model, Msg, Params, page)
 
 import Api.Data exposing (Data)
 import Api.User exposing (User)
-import Browser.Navigation exposing (Key)
 import Components.UserForm
 import Gen.Route as Route
 import Html exposing (..)
 import Page exposing (Page)
-import Ports
 import Request exposing (Request)
 import Shared
 import Utils.Route

@@ -3,7 +3,6 @@ module Pages.Editor.ArticleSlug_ exposing (Model, Msg, Params, page)
 import Api.Article exposing (Article)
 import Api.Data exposing (Data)
 import Api.User exposing (User)
-import Browser.Navigation exposing (Key)
 import Components.Editor exposing (Field, Form)
 import Gen.Route as Route
 import Html exposing (..)

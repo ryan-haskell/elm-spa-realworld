@@ -4,7 +4,7 @@ import Browser
 import Browser.Navigation as Nav exposing (Key)
 import Gen.Pages as Pages
 import Gen.Route as Route
-import Request exposing (Request)
+import Request
 import Shared
 import Url exposing (Url)
 import View

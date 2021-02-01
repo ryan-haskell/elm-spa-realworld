@@ -5,7 +5,6 @@ import Api.Article.Comment exposing (Comment)
 import Api.Data exposing (Data)
 import Api.Profile exposing (Profile)
 import Api.User exposing (User)
-import Browser.Navigation exposing (Key)
 import Components.IconButton as IconButton
 import Gen.Route as Route
 import Html exposing (..)
