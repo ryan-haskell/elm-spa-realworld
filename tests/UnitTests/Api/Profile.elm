@@ -1,6 +1,6 @@
 module UnitTests.Api.Profile exposing (suite)
 
-import Api.Profile exposing (Profile)
+import Api.Profile
 import Expect
 import Json.Decode as Json
 import Test exposing (..)

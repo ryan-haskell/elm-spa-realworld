@@ -3,28 +3,24 @@ module Pages.Editor exposing (Model, Msg, Params, page)
 import Api.Article exposing (Article)
 import Api.Data exposing (Data)
 import Api.User exposing (User)
-import Browser.Navigation exposing (Key)
 import Components.Editor exposing (Field, Form)
+import Gen.Route as Route
 import Html exposing (..)
-import Html.Events as Events
+import Page exposing (Page)
+import Request exposing (Request)
 import Shared
-import Spa.Document exposing (Document)
-import Spa.Generated.Route as Route
-import Spa.Page as Page exposing (Page)
-import Spa.Url exposing (Url)
 import Utils.Auth
 import Utils.Route
+import View exposing (View)
 
 
-page : Page Params Model Msg
-page =
-    Page.application
-        { init = init
-        , update = update
+page : Shared.Model -> Request Params -> Page Model Msg
+page shared req =
+    Page.element
+        { init = init shared
+        , update = update req
         , subscriptions = subscriptions
-        , view = Utils.Auth.protected view
-        , save = save
-        , load = load
+        , view = Utils.Auth.protected shared view
         }
 
 
@@ -37,18 +33,14 @@ type alias Params =
 
 
 type alias Model =
-    { key : Key
-    , user : Maybe User
-    , form : Form
+    { form : Form
     , article : Data Article
     }
 
 
-init : Shared.Model -> Url Params -> ( Model, Cmd Msg )
-init shared _ =
-    ( { key = shared.key
-      , user = shared.user
-      , form =
+init : Shared.Model -> ( Model, Cmd Msg )
+init shared =
+    ( { form =
             { title = ""
             , description = ""
             , body = ""
@@ -70,8 +62,8 @@ type Msg
     | GotArticle (Data Article)
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update : Request Params -> Msg -> Model -> ( Model, Cmd Msg )
+update req msg model =
     case msg of
         Updated field value ->
             ( { model
@@ -105,22 +97,12 @@ update msg model =
             ( { model | article = article }
             , case article of
                 Api.Data.Success newArticle ->
-                    Utils.Route.navigate model.key
-                        (Route.Article__Slug_String { slug = newArticle.slug })
+                    Utils.Route.navigate req.key
+                        (Route.Article__Slug_ { slug = newArticle.slug })
 
                 _ ->
                     Cmd.none
             )
-
-
-save : Model -> Shared.Model -> Shared.Model
-save _ shared =
-    shared
-
-
-load : Shared.Model -> Model -> ( Model, Cmd Msg )
-load _ model =
-    ( model, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
@@ -132,7 +114,7 @@ subscriptions _ =
 -- VIEW
 
 
-view : User -> Model -> Document Msg
+view : User -> Model -> View Msg
 view user model =
     { title = "New Article"
     , body =

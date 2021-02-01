@@ -1,6 +1,6 @@
 module UnitTests.Api.Article exposing (suite)
 
-import Api.Article exposing (Article)
+import Api.Article
 import Expect
 import Json.Decode as Json
 import Test exposing (..)

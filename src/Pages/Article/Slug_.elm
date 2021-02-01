@@ -1,35 +1,32 @@
-module Pages.Article.Slug_String exposing (Model, Msg, Params, page)
+module Pages.Article.Slug_ exposing (Model, Msg, Params, page)
 
 import Api.Article exposing (Article)
 import Api.Article.Comment exposing (Comment)
 import Api.Data exposing (Data)
 import Api.Profile exposing (Profile)
 import Api.User exposing (User)
-import Browser.Navigation exposing (Key)
 import Components.IconButton as IconButton
+import Gen.Route as Route
 import Html exposing (..)
 import Html.Attributes exposing (attribute, class, href, placeholder, src, value)
 import Html.Events as Events
 import Markdown
+import Page exposing (Page)
+import Request exposing (Request)
 import Shared
-import Spa.Document exposing (Document)
-import Spa.Generated.Route as Route
-import Spa.Page as Page exposing (Page)
-import Spa.Url exposing (Url)
 import Utils.Maybe
 import Utils.Route
 import Utils.Time
+import View exposing (View)
 
 
-page : Page Params Model Msg
-page =
-    Page.application
-        { init = init
-        , update = update
+page : Shared.Model -> Request Params -> Page Model Msg
+page shared req =
+    Page.element
+        { init = init shared req
+        , update = update req
         , subscriptions = subscriptions
-        , view = view
-        , save = save
-        , load = load
+        , view = view shared
         }
 
 
@@ -43,20 +40,16 @@ type alias Params =
 
 
 type alias Model =
-    { key : Key
-    , article : Data Article
+    { article : Data Article
     , comments : Data (List Comment)
-    , user : Maybe User
     , commentText : String
     }
 
 
-init : Shared.Model -> Url Params -> ( Model, Cmd Msg )
+init : Shared.Model -> Request Params -> ( Model, Cmd Msg )
 init shared { params } =
-    ( { key = shared.key
-      , article = Api.Data.Loading
+    ( { article = Api.Data.Loading
       , comments = Api.Data.Loading
-      , user = shared.user
       , commentText = ""
       }
     , Cmd.batch
@@ -95,8 +88,8 @@ type Msg
     | UpdatedCommentText String
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update : Request Params -> Msg -> Model -> ( Model, Cmd Msg )
+update req msg model =
     case msg of
         GotArticle article ->
             ( { model | article = article }
@@ -132,7 +125,7 @@ update msg model =
 
         DeletedArticle _ ->
             ( model
-            , Utils.Route.navigate model.key Route.Top
+            , Utils.Route.navigate req.key Route.Home_
             )
 
         GotAuthor profile ->
@@ -223,16 +216,6 @@ update msg model =
             )
 
 
-save : Model -> Shared.Model -> Shared.Model
-save _ shared =
-    shared
-
-
-load : Shared.Model -> Model -> ( Model, Cmd Msg )
-load _ model =
-    ( model, Cmd.none )
-
-
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.none
@@ -242,12 +225,12 @@ subscriptions _ =
 -- VIEW
 
 
-view : Model -> Document Msg
-view model =
+view : Shared.Model -> Model -> View Msg
+view shared model =
     case model.article of
         Api.Data.Success article ->
             { title = article.title
-            , body = [ viewArticle model article ]
+            , body = [ viewArticle shared model article ]
             }
 
         _ ->
@@ -256,13 +239,13 @@ view model =
             }
 
 
-viewArticle : Model -> Article -> Html Msg
-viewArticle model article =
+viewArticle : Shared.Model -> Model -> Article -> Html Msg
+viewArticle shared model article =
     div [ class "article-page" ]
         [ div [ class "banner" ]
             [ div [ class "container" ]
                 [ h1 [] [ text article.title ]
-                , viewArticleMeta model article
+                , viewArticleMeta shared model article
                 ]
             ]
         , div [ class "container page" ]
@@ -280,14 +263,14 @@ viewArticle model article =
                         )
                 ]
             , hr [] []
-            , div [ class "article-actions" ] [ viewArticleMeta model article ]
-            , viewCommentSection model article
+            , div [ class "article-actions" ] [ viewArticleMeta shared model article ]
+            , viewCommentSection shared model article
             ]
         ]
 
 
-viewArticleMeta : Model -> Article -> Html Msg
-viewArticleMeta model article =
+viewArticleMeta : Shared.Model -> Model -> Article -> Html Msg
+viewArticleMeta shared model article =
     div [ class "article-meta" ] <|
         List.concat
             [ [ a [ href ("/profile/" ++ article.author.username) ]
@@ -298,7 +281,7 @@ viewArticleMeta model article =
                     , span [ class "date" ] [ text (Utils.Time.formatDate article.createdAt) ]
                     ]
               ]
-            , case model.user of
+            , case shared.user of
                 Just user ->
                     viewControls article user
 
@@ -359,12 +342,12 @@ viewControls article user =
         ]
 
 
-viewCommentSection : Model -> Article -> Html Msg
-viewCommentSection model article =
+viewCommentSection : Shared.Model -> Model -> Article -> Html Msg
+viewCommentSection shared model article =
     div [ class "row" ]
         [ div [ class "col-xs-12 col-md-8 offset-md-2" ] <|
             List.concat
-                [ case model.user of
+                [ case shared.user of
                     Just user ->
                         [ viewCommentForm model user article ]
 
@@ -372,7 +355,7 @@ viewCommentSection model article =
                         []
                 , case model.comments of
                     Api.Data.Success comments ->
-                        List.map (viewComment model.user article) comments
+                        List.map (viewComment shared.user article) comments
 
                     _ ->
                         []

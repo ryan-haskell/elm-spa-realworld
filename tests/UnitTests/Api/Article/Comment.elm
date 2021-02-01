@@ -1,6 +1,6 @@
 module UnitTests.Api.Article.Comment exposing (suite)
 
-import Api.Article.Comment exposing (Comment)
+import Api.Article.Comment
 import Expect
 import Json.Decode as Json
 import Test exposing (..)

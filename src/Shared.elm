@@ -1,7 +1,7 @@
 module Shared exposing
     ( Flags
     , Model
-    , Msg
+    , Msg(..)
     , init
     , subscriptions
     , update
@@ -9,16 +9,15 @@ module Shared exposing
     )
 
 import Api.User exposing (User)
-import Browser.Navigation exposing (Key)
 import Components.Footer
 import Components.Navbar
 import Html exposing (..)
 import Html.Attributes exposing (class)
 import Json.Decode as Json
 import Ports
-import Spa.Document exposing (Document)
-import Url exposing (Url)
+import Request exposing (Request)
 import Utils.Route
+import View exposing (View)
 
 
 
@@ -30,21 +29,19 @@ type alias Flags =
 
 
 type alias Model =
-    { url : Url
-    , key : Key
-    , user : Maybe User
+    { user : Maybe User
     }
 
 
-init : Flags -> Url -> Key -> ( Model, Cmd Msg )
-init json url key =
+init : Request () -> Flags -> ( Model, Cmd Msg )
+init _ json =
     let
         user =
             json
                 |> Json.decodeValue (Json.field "user" Api.User.decoder)
                 |> Result.toMaybe
     in
-    ( Model url key user
+    ( Model user
     , Cmd.none
     )
 
@@ -55,19 +52,25 @@ init json url key =
 
 type Msg
     = ClickedSignOut
+    | SignedInUser User
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update : Request () -> Msg -> Model -> ( Model, Cmd Msg )
+update _ msg model =
     case msg of
+        SignedInUser user ->
+            ( { model | user = Just user }
+            , Ports.saveUser user
+            )
+
         ClickedSignOut ->
             ( { model | user = Nothing }
             , Ports.clearUser
             )
 
 
-subscriptions : Model -> Sub Msg
-subscriptions _ =
+subscriptions : Request () -> Model -> Sub Msg
+subscriptions _ _ =
     Sub.none
 
 
@@ -76,10 +79,11 @@ subscriptions _ =
 
 
 view :
-    { page : Document msg, toMsg : Msg -> msg }
+    Request ()
+    -> { page : View msg, toMsg : Msg -> msg }
     -> Model
-    -> Document msg
-view { page, toMsg } model =
+    -> View msg
+view req { page, toMsg } model =
     { title =
         if String.isEmpty page.title then
             "Conduit"
@@ -90,7 +94,7 @@ view { page, toMsg } model =
         [ div [ class "layout" ]
             [ Components.Navbar.view
                 { user = model.user
-                , currentRoute = Utils.Route.fromUrl model.url
+                , currentRoute = Utils.Route.fromUrl req.url
                 , onSignOut = toMsg ClickedSignOut
                 }
             , div [ class "page" ] page.body

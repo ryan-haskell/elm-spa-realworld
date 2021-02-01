@@ -6,24 +6,22 @@ import Components.ErrorList
 import Html exposing (..)
 import Html.Attributes exposing (attribute, class, placeholder, type_, value)
 import Html.Events as Events
+import Page exposing (Page)
 import Ports
+import Request exposing (Request)
 import Shared
-import Spa.Document exposing (Document)
-import Spa.Page as Page exposing (Page)
-import Spa.Url exposing (Url)
-import Utils.Auth exposing (protected)
+import Utils.Auth
 import Utils.Maybe
+import View exposing (View)
 
 
-page : Page Params Model Msg
-page =
-    Page.application
-        { init = init
+page : Shared.Model -> Request Params -> Page Model Msg
+page shared _ =
+    Page.shared
+        { init = init shared
         , update = update
         , subscriptions = subscriptions
-        , view = protected view
-        , save = save
-        , load = load
+        , view = Utils.Auth.protected shared view
         }
 
 
@@ -36,8 +34,7 @@ type alias Params =
 
 
 type alias Model =
-    { user : Maybe User
-    , image : String
+    { image : String
     , username : String
     , bio : String
     , email : String
@@ -47,12 +44,11 @@ type alias Model =
     }
 
 
-init : Shared.Model -> Url Params -> ( Model, Cmd Msg )
-init shared _ =
+init : Shared.Model -> ( Model, Cmd Msg, List Shared.Msg )
+init shared =
     ( case shared.user of
         Just user ->
-            { user = shared.user
-            , image = user.image
+            { image = user.image
             , username = user.username
             , bio = user.bio |> Maybe.withDefault ""
             , email = user.email
@@ -62,8 +58,7 @@ init shared _ =
             }
 
         Nothing ->
-            { user = shared.user
-            , image = ""
+            { image = ""
             , username = ""
             , bio = ""
             , email = ""
@@ -72,6 +67,7 @@ init shared _ =
             , errors = []
             }
     , Cmd.none
+    , []
     )
 
 
@@ -93,23 +89,23 @@ type Field
     | Password
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> ( Model, Cmd Msg, List Shared.Msg )
 update msg model =
     case msg of
         Updated Image value ->
-            ( { model | image = value }, Cmd.none )
+            ( { model | image = value }, Cmd.none, [] )
 
         Updated Username value ->
-            ( { model | username = value }, Cmd.none )
+            ( { model | username = value }, Cmd.none, [] )
 
         Updated Bio value ->
-            ( { model | bio = value }, Cmd.none )
+            ( { model | bio = value }, Cmd.none, [] )
 
         Updated Email value ->
-            ( { model | email = value }, Cmd.none )
+            ( { model | email = value }, Cmd.none, [] )
 
         Updated Password value ->
-            ( { model | password = Just value }, Cmd.none )
+            ( { model | password = Just value }, Cmd.none, [] )
 
         SubmittedForm user ->
             ( { model | message = Nothing, errors = [] }
@@ -118,33 +114,23 @@ update msg model =
                 , user = model
                 , onResponse = GotUser
                 }
+            , []
             )
 
         GotUser (Api.Data.Success user) ->
-            ( { model
-                | message = Just "User updated!"
-                , user = Just user
-              }
+            ( { model | message = Just "User updated!" }
             , Ports.saveUser user
+            , [ Shared.SignedInUser user ]
             )
 
         GotUser (Api.Data.Failure reasons) ->
             ( { model | errors = reasons }
             , Cmd.none
+            , []
             )
 
         GotUser _ ->
-            ( model, Cmd.none )
-
-
-save : Model -> Shared.Model -> Shared.Model
-save model shared =
-    { shared | user = model.user }
-
-
-load : Shared.Model -> Model -> ( Model, Cmd Msg )
-load _ model =
-    ( model, Cmd.none )
+            ( model, Cmd.none, [] )
 
 
 subscriptions : Model -> Sub Msg
@@ -156,7 +142,7 @@ subscriptions _ =
 -- VIEW
 
 
-view : User -> Model -> Document Msg
+view : User -> Model -> View Msg
 view user model =
     { title = "Settings"
     , body =

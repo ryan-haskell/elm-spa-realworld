@@ -2,27 +2,23 @@ module Pages.Register exposing (Model, Msg, Params, page)
 
 import Api.Data exposing (Data)
 import Api.User exposing (User)
-import Browser.Navigation exposing (Key)
 import Components.UserForm
+import Gen.Route as Route
 import Html exposing (..)
-import Ports
+import Page exposing (Page)
+import Request exposing (Request)
 import Shared
-import Spa.Document exposing (Document)
-import Spa.Generated.Route as Route
-import Spa.Page as Page exposing (Page)
-import Spa.Url exposing (Url)
 import Utils.Route
+import View exposing (View)
 
 
-page : Page Params Model Msg
-page =
-    Page.application
-        { init = init
-        , update = update
+page : Shared.Model -> Request Params -> Page Model Msg
+page shared req =
+    Page.shared
+        { init = init shared
+        , update = update req
         , subscriptions = subscriptions
         , view = view
-        , save = save
-        , load = load
         }
 
 
@@ -36,15 +32,14 @@ type alias Params =
 
 type alias Model =
     { user : Data User
-    , key : Key
     , username : String
     , email : String
     , password : String
     }
 
 
-init : Shared.Model -> Url Params -> ( Model, Cmd Msg )
-init shared { key } =
+init : Shared.Model -> ( Model, Cmd Msg, List Shared.Msg )
+init shared =
     ( Model
         (case shared.user of
             Just user ->
@@ -53,11 +48,11 @@ init shared { key } =
             Nothing ->
                 Api.Data.NotAsked
         )
-        key
         ""
         ""
         ""
     , Cmd.none
+    , []
     )
 
 
@@ -77,22 +72,25 @@ type Field
     | Password
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update : Request Params -> Msg -> Model -> ( Model, Cmd Msg, List Shared.Msg )
+update req msg model =
     case msg of
         Updated Username username ->
             ( { model | username = username }
             , Cmd.none
+            , []
             )
 
         Updated Email email ->
             ( { model | email = email }
             , Cmd.none
+            , []
             )
 
         Updated Password password ->
             ( { model | password = password }
             , Cmd.none
+            , []
             )
 
         AttemptedSignUp ->
@@ -105,38 +103,22 @@ update msg model =
                     }
                 , onResponse = GotUser
                 }
+            , []
             )
 
         GotUser user ->
-            ( { model | user = user }
-            , case Api.Data.toMaybe user of
+            case Api.Data.toMaybe user of
                 Just user_ ->
-                    Cmd.batch
-                        [ Ports.saveUser user_
-                        , Utils.Route.navigate model.key Route.Top
-                        ]
+                    ( { model | user = user }
+                    , Utils.Route.navigate req.key Route.Home_
+                    , [ Shared.SignedInUser user_ ]
+                    )
 
                 Nothing ->
-                    Cmd.none
-            )
-
-
-save : Model -> Shared.Model -> Shared.Model
-save model shared =
-    { shared
-        | user =
-            case Api.Data.toMaybe model.user of
-                Just user ->
-                    Just user
-
-                Nothing ->
-                    shared.user
-    }
-
-
-load : Shared.Model -> Model -> ( Model, Cmd Msg )
-load _ model =
-    ( model, Cmd.none )
+                    ( { model | user = user }
+                    , Cmd.none
+                    , []
+                    )
 
 
 subscriptions : Model -> Sub Msg
@@ -148,7 +130,7 @@ subscriptions _ =
 -- VIEW
 
 
-view : Model -> Document Msg
+view : Model -> View Msg
 view model =
     { title = "Sign up"
     , body =

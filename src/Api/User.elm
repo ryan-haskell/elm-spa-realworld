@@ -1,7 +1,7 @@
 module Api.User exposing
     ( User
     , decoder, encode
-    , authentication, registration, current, update
+    , authentication, registration, update
     )
 
 {-|
@@ -105,16 +105,6 @@ registration options =
     Http.post
         { url = "https://conduit.productionready.io/api/users"
         , body = Http.jsonBody body
-        , expect =
-            Api.Data.expectJson options.onResponse
-                (Json.field "user" decoder)
-        }
-
-
-current : { token : Token, onResponse : Data User -> msg } -> Cmd msg
-current options =
-    Api.Token.get (Just options.token)
-        { url = "https://conduit.productionready.io/api/user"
         , expect =
             Api.Data.expectJson options.onResponse
                 (Json.field "user" decoder)

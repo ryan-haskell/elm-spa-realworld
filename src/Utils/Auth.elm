@@ -3,28 +3,31 @@ module Utils.Auth exposing (protected)
 import Api.User exposing (User)
 import Html exposing (..)
 import Html.Attributes exposing (class, href)
-import Spa.Document exposing (Document)
+import Shared
+import View exposing (View)
 
 
 protected :
-    (User -> { model | user : Maybe User } -> Document msg)
-    -> { model | user : Maybe User }
-    -> Document msg
-protected view model =
-    case model.user of
+    Shared.Model
+    -> (User -> model -> View msg)
+    -> model
+    -> View msg
+protected shared view =
+    case shared.user of
         Just user ->
-            view user model
+            view user
 
         Nothing ->
-            { title = "401"
-            , body =
-                [ div [ class "container page" ]
-                    [ h2 [] [ text "Not signed in." ]
-                    , h5 []
-                        [ text "Please "
-                        , a [ href "/login" ] [ text "sign in" ]
-                        , text " to view this page."
+            \_ ->
+                { title = "401"
+                , body =
+                    [ div [ class "container page" ]
+                        [ h2 [] [ text "Not signed in." ]
+                        , h5 []
+                            [ text "Please "
+                            , a [ href "/login" ] [ text "sign in" ]
+                            , text " to view this page."
+                            ]
                         ]
                     ]
-                ]
-            }
+                }

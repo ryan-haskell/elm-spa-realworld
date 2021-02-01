@@ -1,6 +1,6 @@
 module UnitTests.Api.User exposing (suite)
 
-import Api.User exposing (User)
+import Api.User
 import Expect
 import Json.Decode as Json
 import Test exposing (..)
