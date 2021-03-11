@@ -1,4 +1,4 @@
-module Pages.Profile.Username_ exposing (Model, Msg, Params, page)
+module Pages.Profile.Username_ exposing (Model, Msg, page)
 
 import Api.Article exposing (Article)
 import Api.Article.Filters as Filters
@@ -9,6 +9,7 @@ import Api.User exposing (User)
 import Components.ArticleList
 import Components.IconButton as IconButton
 import Components.NotFound
+import Gen.Params.Profile.Username_ exposing (Params)
 import Html exposing (..)
 import Html.Attributes exposing (class, classList, src)
 import Html.Events as Events
@@ -31,10 +32,6 @@ page shared req =
 
 
 -- INIT
-
-
-type alias Params =
-    { username : String }
 
 
 type alias Model =

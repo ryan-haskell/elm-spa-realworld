@@ -1,4 +1,4 @@
-module Pages.Article.Slug_ exposing (Model, Msg, Params, page)
+module Pages.Article.Slug_ exposing (Model, Msg, page)
 
 import Api.Article exposing (Article)
 import Api.Article.Comment exposing (Comment)
@@ -6,6 +6,7 @@ import Api.Data exposing (Data)
 import Api.Profile exposing (Profile)
 import Api.User exposing (User)
 import Components.IconButton as IconButton
+import Gen.Params.Article.Slug_ exposing (Params)
 import Gen.Route as Route
 import Html exposing (..)
 import Html.Attributes exposing (attribute, class, href, placeholder, src, value)
@@ -32,11 +33,6 @@ page shared req =
 
 
 -- INIT
-
-
-type alias Params =
-    { slug : String
-    }
 
 
 type alias Model =

@@ -1,4 +1,4 @@
-module Pages.Editor exposing (Model, Msg, Params, page)
+module Pages.Editor exposing (Model, Msg, page)
 
 import Api.Article exposing (Article)
 import Api.Data exposing (Data)
@@ -13,7 +13,7 @@ import Utils.Route
 import View exposing (View)
 
 
-page : Shared.Model -> Request.With Params -> Page.With Model Msg
+page : Shared.Model -> Request -> Page.With Model Msg
 page shared req =
     Page.protected.element <|
         \user ->
@@ -26,10 +26,6 @@ page shared req =
 
 
 -- INIT
-
-
-type alias Params =
-    ()
 
 
 type alias Model =
@@ -62,7 +58,7 @@ type Msg
     | GotArticle (Data Article)
 
 
-update : Request.With Params -> Msg -> Model -> ( Model, Cmd Msg )
+update : Request -> Msg -> Model -> ( Model, Cmd Msg )
 update req msg model =
     case msg of
         Updated field value ->

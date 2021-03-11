@@ -1,4 +1,4 @@
-module Pages.Login exposing (Model, Msg, Params, page)
+module Pages.Login exposing (Model, Msg, page)
 
 import Api.Data exposing (Data)
 import Api.User exposing (User)
@@ -13,7 +13,7 @@ import Utils.Route
 import View exposing (View)
 
 
-page : Shared.Model -> Request.With Params -> Page.With Model Msg
+page : Shared.Model -> Request -> Page.With Model Msg
 page shared req =
     Page.advanced
         { init = init shared
@@ -25,10 +25,6 @@ page shared req =
 
 
 -- INIT
-
-
-type alias Params =
-    ()
 
 
 type alias Model =
@@ -69,7 +65,7 @@ type Field
     | Password
 
 
-update : Request.With Params -> Msg -> Model -> ( Model, Effect Msg )
+update : Request -> Msg -> Model -> ( Model, Effect Msg )
 update req msg model =
     case msg of
         Updated Email email ->

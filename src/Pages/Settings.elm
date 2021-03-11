@@ -1,4 +1,4 @@
-module Pages.Settings exposing (Model, Msg, Params, page)
+module Pages.Settings exposing (Model, Msg, page)
 
 import Api.Data exposing (Data)
 import Api.User exposing (User)
@@ -15,7 +15,7 @@ import Utils.Maybe
 import View exposing (View)
 
 
-page : Shared.Model -> Request.With Params -> Page.With Model Msg
+page : Shared.Model -> Request -> Page.With Model Msg
 page shared _ =
     Page.protected.advanced
         (\user ->
@@ -29,10 +29,6 @@ page shared _ =
 
 
 -- INIT
-
-
-type alias Params =
-    ()
 
 
 type alias Model =

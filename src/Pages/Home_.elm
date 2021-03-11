@@ -1,4 +1,4 @@
-module Pages.Home_ exposing (Model, Msg, Params, page)
+module Pages.Home_ exposing (Model, Msg, page)
 
 import Api.Article exposing (Article)
 import Api.Article.Filters as Filters
@@ -16,7 +16,7 @@ import Utils.Maybe
 import View exposing (View)
 
 
-page : Shared.Model -> Request.With Params -> Page.With Model Msg
+page : Shared.Model -> Request -> Page.With Model Msg
 page shared _ =
     Page.element
         { init = init shared
@@ -28,10 +28,6 @@ page shared _ =
 
 
 -- INIT
-
-
-type alias Params =
-    ()
 
 
 type alias Model =

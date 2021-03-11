@@ -1,9 +1,10 @@
-module Pages.Editor.ArticleSlug_ exposing (Model, Msg, Params, page)
+module Pages.Editor.ArticleSlug_ exposing (Model, Msg, page)
 
 import Api.Article exposing (Article)
 import Api.Data exposing (Data)
 import Api.User exposing (User)
 import Components.Editor exposing (Field, Form)
+import Gen.Params.Editor.ArticleSlug_ exposing (Params)
 import Gen.Route as Route
 import Html exposing (..)
 import Page exposing (Page)
@@ -26,10 +27,6 @@ page shared req =
 
 
 -- INIT
-
-
-type alias Params =
-    { articleSlug : String }
 
 
 type alias Model =
