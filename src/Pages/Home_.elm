@@ -16,7 +16,7 @@ import Utils.Maybe
 import View exposing (View)
 
 
-page : Shared.Model -> Request Params -> Page Model Msg
+page : Shared.Model -> Request.With Params -> Page.With Model Msg
 page shared _ =
     Page.element
         { init = init shared

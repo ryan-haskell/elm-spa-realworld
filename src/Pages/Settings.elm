@@ -3,6 +3,7 @@ module Pages.Settings exposing (Model, Msg, Params, page)
 import Api.Data exposing (Data)
 import Api.User exposing (User)
 import Components.ErrorList
+import Effect exposing (Effect)
 import Html exposing (..)
 import Html.Attributes exposing (attribute, class, placeholder, type_, value)
 import Html.Events as Events
@@ -10,19 +11,20 @@ import Page exposing (Page)
 import Ports
 import Request exposing (Request)
 import Shared
-import Utils.Auth
 import Utils.Maybe
 import View exposing (View)
 
 
-page : Shared.Model -> Request Params -> Page Model Msg
+page : Shared.Model -> Request.With Params -> Page.With Model Msg
 page shared _ =
-    Page.shared
-        { init = init shared
-        , update = update
-        , subscriptions = subscriptions
-        , view = Utils.Auth.protected shared view
-        }
+    Page.protected.advanced
+        (\user ->
+            { init = init shared
+            , update = update
+            , subscriptions = subscriptions
+            , view = view user
+            }
+        )
 
 
 
@@ -44,7 +46,7 @@ type alias Model =
     }
 
 
-init : Shared.Model -> ( Model, Cmd Msg, List Shared.Msg )
+init : Shared.Model -> ( Model, Effect Msg )
 init shared =
     ( case shared.user of
         Just user ->
@@ -66,8 +68,7 @@ init shared =
             , message = Nothing
             , errors = []
             }
-    , Cmd.none
-    , []
+    , Effect.none
     )
 
 
@@ -89,48 +90,49 @@ type Field
     | Password
 
 
-update : Msg -> Model -> ( Model, Cmd Msg, List Shared.Msg )
+update : Msg -> Model -> ( Model, Effect Msg )
 update msg model =
     case msg of
         Updated Image value ->
-            ( { model | image = value }, Cmd.none, [] )
+            ( { model | image = value }, Effect.none )
 
         Updated Username value ->
-            ( { model | username = value }, Cmd.none, [] )
+            ( { model | username = value }, Effect.none )
 
         Updated Bio value ->
-            ( { model | bio = value }, Cmd.none, [] )
+            ( { model | bio = value }, Effect.none )
 
         Updated Email value ->
-            ( { model | email = value }, Cmd.none, [] )
+            ( { model | email = value }, Effect.none )
 
         Updated Password value ->
-            ( { model | password = Just value }, Cmd.none, [] )
+            ( { model | password = Just value }, Effect.none )
 
         SubmittedForm user ->
             ( { model | message = Nothing, errors = [] }
-            , Api.User.update
-                { token = user.token
-                , user = model
-                , onResponse = GotUser
-                }
-            , []
+            , Effect.fromCmd <|
+                Api.User.update
+                    { token = user.token
+                    , user = model
+                    , onResponse = GotUser
+                    }
             )
 
         GotUser (Api.Data.Success user) ->
             ( { model | message = Just "User updated!" }
-            , Ports.saveUser user
-            , [ Shared.SignedInUser user ]
+            , Effect.batch
+                [ Effect.fromCmd (Ports.saveUser user)
+                , Effect.fromShared (Shared.SignedInUser user)
+                ]
             )
 
         GotUser (Api.Data.Failure reasons) ->
             ( { model | errors = reasons }
-            , Cmd.none
-            , []
+            , Effect.none
             )
 
         GotUser _ ->
-            ( model, Cmd.none, [] )
+            ( model, Effect.none )
 
 
 subscriptions : Model -> Sub Msg

@@ -9,19 +9,19 @@ import Html exposing (..)
 import Page exposing (Page)
 import Request exposing (Request)
 import Shared
-import Utils.Auth
 import Utils.Route
 import View exposing (View)
 
 
-page : Shared.Model -> Request Params -> Page Model Msg
+page : Shared.Model -> Request.With Params -> Page.With Model Msg
 page shared req =
-    Page.element
-        { init = init shared
-        , update = update req
-        , subscriptions = subscriptions
-        , view = Utils.Auth.protected shared view
-        }
+    Page.protected.element <|
+        \user ->
+            { init = init shared
+            , update = update req
+            , subscriptions = subscriptions
+            , view = view user
+            }
 
 
 
@@ -62,7 +62,7 @@ type Msg
     | GotArticle (Data Article)
 
 
-update : Request Params -> Msg -> Model -> ( Model, Cmd Msg )
+update : Request.With Params -> Msg -> Model -> ( Model, Cmd Msg )
 update req msg model =
     case msg of
         Updated field value ->

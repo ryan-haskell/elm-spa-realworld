@@ -33,7 +33,7 @@ type alias Model =
     }
 
 
-init : Request () -> Flags -> ( Model, Cmd Msg )
+init : Request -> Flags -> ( Model, Cmd Msg )
 init _ json =
     let
         user =
@@ -55,7 +55,7 @@ type Msg
     | SignedInUser User
 
 
-update : Request () -> Msg -> Model -> ( Model, Cmd Msg )
+update : Request -> Msg -> Model -> ( Model, Cmd Msg )
 update _ msg model =
     case msg of
         SignedInUser user ->
@@ -69,7 +69,7 @@ update _ msg model =
             )
 
 
-subscriptions : Request () -> Model -> Sub Msg
+subscriptions : Request -> Model -> Sub Msg
 subscriptions _ _ =
     Sub.none
 
@@ -79,7 +79,7 @@ subscriptions _ _ =
 
 
 view :
-    Request ()
+    Request
     -> { page : View msg, toMsg : Msg -> msg }
     -> Model
     -> View msg

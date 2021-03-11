@@ -9,19 +9,19 @@ import Html exposing (..)
 import Page exposing (Page)
 import Request exposing (Request)
 import Shared
-import Utils.Auth
 import Utils.Route
 import View exposing (View)
 
 
-page : Shared.Model -> Request Params -> Page Model Msg
+page : Shared.Model -> Request.With Params -> Page.With Model Msg
 page shared req =
-    Page.element
-        { init = init shared req
-        , update = update req
-        , subscriptions = subscriptions
-        , view = Utils.Auth.protected shared view
-        }
+    Page.protected.element <|
+        \user ->
+            { init = init shared req
+            , update = update req
+            , subscriptions = subscriptions
+            , view = view user
+            }
 
 
 
@@ -39,7 +39,7 @@ type alias Model =
     }
 
 
-init : Shared.Model -> Request Params -> ( Model, Cmd Msg )
+init : Shared.Model -> Request.With Params -> ( Model, Cmd Msg )
 init shared { params } =
     ( { slug = params.articleSlug
       , form = Nothing
@@ -64,7 +64,7 @@ type Msg
     | LoadedInitialArticle (Data Article)
 
 
-update : Request Params -> Msg -> Model -> ( Model, Cmd Msg )
+update : Request.With Params -> Msg -> Model -> ( Model, Cmd Msg )
 update req msg model =
     case msg of
         LoadedInitialArticle article ->

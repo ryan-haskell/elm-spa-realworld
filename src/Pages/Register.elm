@@ -3,6 +3,7 @@ module Pages.Register exposing (Model, Msg, Params, page)
 import Api.Data exposing (Data)
 import Api.User exposing (User)
 import Components.UserForm
+import Effect exposing (Effect)
 import Gen.Route as Route
 import Html exposing (..)
 import Page exposing (Page)
@@ -12,9 +13,9 @@ import Utils.Route
 import View exposing (View)
 
 
-page : Shared.Model -> Request Params -> Page Model Msg
+page : Shared.Model -> Request.With Params -> Page.With Model Msg
 page shared req =
-    Page.shared
+    Page.advanced
         { init = init shared
         , update = update req
         , subscriptions = subscriptions
@@ -38,7 +39,7 @@ type alias Model =
     }
 
 
-init : Shared.Model -> ( Model, Cmd Msg, List Shared.Msg )
+init : Shared.Model -> ( Model, Effect Msg )
 init shared =
     ( Model
         (case shared.user of
@@ -51,8 +52,7 @@ init shared =
         ""
         ""
         ""
-    , Cmd.none
-    , []
+    , Effect.none
     )
 
 
@@ -72,52 +72,50 @@ type Field
     | Password
 
 
-update : Request Params -> Msg -> Model -> ( Model, Cmd Msg, List Shared.Msg )
+update : Request.With Params -> Msg -> Model -> ( Model, Effect Msg )
 update req msg model =
     case msg of
         Updated Username username ->
             ( { model | username = username }
-            , Cmd.none
-            , []
+            , Effect.none
             )
 
         Updated Email email ->
             ( { model | email = email }
-            , Cmd.none
-            , []
+            , Effect.none
             )
 
         Updated Password password ->
             ( { model | password = password }
-            , Cmd.none
-            , []
+            , Effect.none
             )
 
         AttemptedSignUp ->
             ( model
-            , Api.User.registration
-                { user =
-                    { username = model.username
-                    , email = model.email
-                    , password = model.password
+            , Effect.fromCmd <|
+                Api.User.registration
+                    { user =
+                        { username = model.username
+                        , email = model.email
+                        , password = model.password
+                        }
+                    , onResponse = GotUser
                     }
-                , onResponse = GotUser
-                }
-            , []
             )
 
         GotUser user ->
             case Api.Data.toMaybe user of
                 Just user_ ->
                     ( { model | user = user }
-                    , Utils.Route.navigate req.key Route.Home_
-                    , [ Shared.SignedInUser user_ ]
+                    , Effect.batch
+                        [ Effect.fromCmd (Utils.Route.navigate req.key Route.Home_)
+                        , Effect.fromShared (Shared.SignedInUser user_)
+                        ]
                     )
 
                 Nothing ->
                     ( { model | user = user }
-                    , Cmd.none
-                    , []
+                    , Effect.none
                     )
 
 

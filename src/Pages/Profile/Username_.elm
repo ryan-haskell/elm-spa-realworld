@@ -19,7 +19,7 @@ import Utils.Maybe
 import View exposing (View)
 
 
-page : Shared.Model -> Request Params -> Page Model Msg
+page : Shared.Model -> Request.With Params -> Page.With Model Msg
 page shared req =
     Page.element
         { init = init shared req
@@ -51,7 +51,7 @@ type Tab
     | FavoritedArticles
 
 
-init : Shared.Model -> Request Params -> ( Model, Cmd Msg )
+init : Shared.Model -> Request.With Params -> ( Model, Cmd Msg )
 init shared { params } =
     let
         token : Maybe Token

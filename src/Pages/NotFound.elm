@@ -1,11 +1,11 @@
-module Pages.NotFound exposing (page)
+module Pages.NotFound exposing (view)
 
 import Components.NotFound
 import Html exposing (..)
 
 
-page : { title : String, body : List (Html msg) }
-page =
+view : { title : String, body : List (Html msg) }
+view =
     { title = "404"
     , body =
         [ Components.NotFound.view
