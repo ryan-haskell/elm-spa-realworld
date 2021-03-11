@@ -1,12 +1,6 @@
 [build]
   publish = "public"
-  command = "npm i elm-spa@beta && npx elm-spa build"
-
-[[redirects]]
-  from = "/api/*"
-  to = "https://conduit.productionready.io/api/:splat"
-  status = 200
-  force = true
+  command = "npm i elm-spa@beta elm@latest-0.19.1 && npx elm-spa build"
 
 [[redirects]]
   from = "/*"
