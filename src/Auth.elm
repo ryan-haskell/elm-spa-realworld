@@ -1,7 +1,7 @@
 module Auth exposing (User, beforeProtectedInit)
 
 import Api.User
-import ElmSpa.Internals.Page as ElmSpa
+import ElmSpa.Page as ElmSpa
 import Gen.Route exposing (Route)
 import Request exposing (Request)
 import Shared

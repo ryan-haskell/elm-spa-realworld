@@ -34,5 +34,5 @@ src/
 # Getting started
 
 ```
-npm start
+elm-spa server
 ```
