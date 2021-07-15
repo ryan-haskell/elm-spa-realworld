@@ -61,49 +61,6 @@ viewArticlePreview :
     -> Html msg
 viewArticlePreview options article =
     div [ class "article-preview" ]
-        [ div [ class "article-meta" ]
-            [ a [ href ("/profile/" ++ article.author.username) ]
-                [ img [ src article.author.image, alt article.author.username ] []
-                ]
-            , div [ class "info" ]
-                [ a [ class "author", href ("/profile/" ++ article.author.username) ] [ text article.author.username ]
-                , span [ class "date" ] [ text (Utils.Time.formatDate article.createdAt) ]
-                ]
-            , div [ class "pull-xs-right" ]
-                [ Utils.Maybe.view options.user <|
-                    \user ->
-                        if user.username == article.author.username then
-                            text ""
-
-                        else if article.favorited then
-                            IconButton.view
-                                { color = IconButton.FilledGreen
-                                , icon = IconButton.Heart
-                                , label = " " ++ String.fromInt article.favoritesCount
-                                , onClick = options.onUnfavorite user article
-                                }
-
-                        else
-                            IconButton.view
-                                { color = IconButton.OutlinedGreen
-                                , icon = IconButton.Heart
-                                , label = " " ++ String.fromInt article.favoritesCount
-                                , onClick = options.onFavorite user article
-                                }
-                ]
-            ]
-        , a [ class "preview-link", href ("/article/" ++ article.slug) ]
-            [ h1 [] [ text article.title ]
-            , p [] [ text article.description ]
-            , span [] [ text "Read more..." ]
-            , if List.isEmpty article.tags then
-                text ""
-
-              else
-                ul [ class "tag-list" ]
-                    (List.map
-                        (\tag -> li [ class "tag-default tag-pill tag-outline" ] [ text tag ])
-                        article.tags
-                    )
-            ]
+        [ div [ class "article-meta" ][ text "ここに記事のメタ情報表示を実装してね★ミ"]
+        , div [] [text "ここに記事情報の表示を実装してね★ミ"]
         ]

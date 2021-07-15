@@ -15,35 +15,7 @@ view :
     -> Html msg
 view options =
     nav [ class "navbar navbar-light" ]
-        [ div [ class "container" ]
-            [ a [ class "navbar-brand", href (Route.toHref Route.Home_) ] [ text "conduit" ]
-            , ul [ class "nav navbar-nav pull-xs-right" ] <|
-                case options.user of
-                    Just _ ->
-                        List.concat
-                            [ List.map (viewLink options.currentRoute) <|
-                                [ ( "Home", Route.Home_ )
-                                , ( "New Article", Route.Editor )
-                                , ( "Settings", Route.Settings )
-                                ]
-                            , [ li [ class "nav-item" ]
-                                    [ a
-                                        [ class "nav-link"
-                                        , Events.onClick options.onSignOut
-                                        ]
-                                        [ text "Sign out" ]
-                                    ]
-                              ]
-                            ]
-
-                    Nothing ->
-                        List.map (viewLink options.currentRoute) <|
-                            [ ( "Home", Route.Home_ )
-                            , ( "Sign in", Route.Login )
-                            , ( "Sign up", Route.Register )
-                            ]
-            ]
-        ]
+        [ text "ここにヘッダーを実装してね★ミ"]
 
 
 viewLink : Route -> ( String, Route ) -> Html msg
